@@ -1,12 +1,14 @@
 {
   "name": "resin-docker-build",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "A containerised builder which interacts with the docker remote API to perform builds.",
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "types": "src/index.ts",
   "scripts": {
-    "start": "tsc && node lib/example/app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "",
+    "build": "gulp",
+    "pretest": "tsc tests/tests.ts",
+    "test": "mocha tests/tests.js"
   },
   "author": "Cameron Diver <cameron@resin.io>",
   "license": "Apache-2.0",
@@ -18,9 +20,7 @@
     "event-stream": "^3.3.4",
     "lodash": "^4.17.4",
     "mz": "^2.6.0",
-    "tar-stream": "^1.5.2"
-  },
-  "devDependencies": {
+    "tar-stream": "^1.5.2",
     "@types/bluebird": "^3.0.37",
     "@types/dockerode": "^2.3.1",
     "@types/es6-promise": "0.0.32",
@@ -29,5 +29,20 @@
     "@types/lodash": "^4.14.51",
     "@types/mz": "0.0.30",
     "@types/node": "^7.0.2"
+  },
+  "devDependencies": {
+    "@types/chai": "^3.4.35",
+    "@types/mocha": "^2.2.39",
+    "chai": "^3.5.0",
+    "dts-generator": "^2.1.0",
+    "gulp": "^3.9.1",
+    "gulp-clean": "^0.3.2",
+    "gulp-shell": "^0.6.1",
+    "gulp-sourcemaps": "^2.4.1",
+    "gulp-typescript": "^3.1.5",
+    "gulp-util": "^3.0.8",
+    "mocha": "^3.2.0",
+    "ts-node": "^2.1.0",
+    "typescript": "^2.1.6"
   }
 }
