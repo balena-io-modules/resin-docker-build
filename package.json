@@ -1,0 +1,33 @@
+{
+  "name": "resin-docker-build",
+  "version": "1.0.0",
+  "description": "A containerised builder which interacts with the docker remote API to perform builds.",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "start": "tsc && node lib/example/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Cameron Diver <cameron@resin.io>",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "JSONStream": "^1.3.0",
+    "bluebird": "^3.4.7",
+    "dockerode": "^2.3.1",
+    "duplexify": "^3.5.0",
+    "event-stream": "^3.3.4",
+    "lodash": "^4.17.4",
+    "mz": "^2.6.0",
+    "tar-stream": "^1.5.2"
+  },
+  "devDependencies": {
+    "@types/bluebird": "^3.0.37",
+    "@types/dockerode": "^2.3.1",
+    "@types/es6-promise": "0.0.32",
+    "@types/event-stream": "^3.3.30",
+    "@types/jsonstream": "^0.8.28",
+    "@types/lodash": "^4.14.51",
+    "@types/mz": "0.0.30",
+    "@types/node": "^7.0.2"
+  }
+}

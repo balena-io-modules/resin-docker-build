@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "rootDir": "./src/",
+    "outDir": "./lib/",
+    "types": ["node"]
+  },
+  "exclude": [
+    "node_modules",
+    "lib"
+  ]
+}
