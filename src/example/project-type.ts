@@ -4,13 +4,11 @@ export class ProjectType {
 
 	private templateContent : string = "";
 
-	public provideEntry(stream, header) : boolean {
+	public provideEntry(stream : NodeJS.ReadableStream, header: any) : boolean {
 		// Check if this is a file we need to be able to generate the dockerfile
 		// obviously this will depend on the project type, so just support Dockerfile.template for POC
 		if(header.name === './Dockerfile.template') {
-			//this.templateContent = stream.read(header.size).toString();
-			//console.log(this.templateContent);
-			stream.on('data', (data) => {
+			stream.on('data', (data: Buffer) => {
 				this.templateContent += data;
 			});
 

@@ -1,9 +1,14 @@
 {
   "compilerOptions": {
+    "module": "commonjs",
     "declaration": true,
     "rootDir": "./src/",
     "outDir": "./lib/",
-    "types": ["node"]
+    "sourceMap": true,
+    "types": ["node"],
+    "target": "es6",
+    "noImplicitAny": true,
+    "strictNullChecks": true
   },
   "exclude": [
     "node_modules",

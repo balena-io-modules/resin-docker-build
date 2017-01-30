@@ -1,21 +1,22 @@
-const Docker = require('dockerode');
-const tar = require('tar-stream');
-const fs = require('fs');
-const path = require('path');
-const JSONStream = require('JSONStream');
-const duplexify = require('duplexify');
-const es = require('event-stream');
-const _ = require('lodash');
 
-// Import promise this way so that we can use it as a type
 import * as Promise from 'bluebird';
+import * as _ from 'lodash';
+import * as fs from 'mz/fs';
+import * as path from 'path';
+
+// Type-less imports
+const tar = require('tar-stream');
+const duplexify = require('duplexify');
+// Following types are available, but do not work...
+const Docker = require('dockerode');
+const es = require('event-stream');
+const JSONStream = require('JSONStream');
 
 // Import hook definitions
 import * as Plugin from './plugin';
 import * as Utils from './utils';
 
 Promise.promisifyAll(Docker.prototype);
-Promise.promisifyAll(fs);
 Promise.promisifyAll(tar);
 
 /**
@@ -27,10 +28,10 @@ Promise.promisifyAll(tar);
  */
 export default class Builder {
 
-	private docker;
+	private docker: any;
 	// Initialise the hooks to the empty object to ensure
 	// we don't get undefined errors.
-	private hooks: Plugin.BuildHooks = {};
+	private hooks: Plugin.IBuildHooks = {};
 	private layers: string[];
 
 	/**
@@ -40,7 +41,7 @@ export default class Builder {
 	 * new Builder('/var/run/docker.sock')
 	 */
 	constructor(dockerPath: string) {
-		this.docker = new Docker({ socketPath: dockerPath })
+		this.docker = new Docker({ socketPath: dockerPath });
 	}
 
 	/**
@@ -65,7 +66,7 @@ export default class Builder {
 	 * });
 	 *
 	 */
-	public registerHooks(hooks: Plugin.BuildHooks) : void {
+	public registerHooks(hooks: Plugin.IBuildHooks): void {
 		this.hooks = hooks;
 	}
 
@@ -79,30 +80,29 @@ export default class Builder {
 	 *	A promise which resolves with a bi-directional stream, which is connected
 	 *	to the docker daemon.
 	 */
-	public createBuildStream(buildOpts: Object) : NodeJS.ReadWriteStream {
+	public createBuildStream(buildOpts: Object): NodeJS.ReadWriteStream {
 
-		// There has to be a better way to propagate 'this' to the promise .catch
-		// handler
-		let instance = this;
+		const instance = this;
 
 		this.layers = [];
 
 		// Create a stream to be passed into the docker daemon
-		let inputStream = es.through();
+		const inputStream = es.through();
 
 		// Create a bi-directional stream
-		let dup = duplexify();
+		const dup = duplexify();
 
 		// Connect the input stream to the rw stream
 		dup.setWritable(inputStream);
 
 		this.docker.buildImageAsync(inputStream, buildOpts)
-		.then( (res) => {
-			let outputStream = res
+		.then((res: NodeJS.ReadWriteStream) => {
+
+			const outputStream = res
 			// parse the json objects
 			.pipe(JSONStream.parse())
 			// Don't use fat-arrow syntax here, to capture 'this' from es
-			.pipe(es.through(function(data) {
+			.pipe(es.through(function(data: any) {
 				if(data.error) {
 					// The build failed, pass this information through to the build failed
 					// callback.
@@ -110,8 +110,8 @@ export default class Builder {
 					dup.destroy(new Error(data.error));
 				} else {
 					// Store image layers, so that they can be deleted by the caller if necessary
-					let sha: string;
-					if((sha = Utils.extractLayer(data.stream)) != undefined) {
+					let sha = Utils.extractLayer(data.stream);
+					if(sha !== undefined) {
 						instance.layers.push(sha);
 					}
 
@@ -128,7 +128,7 @@ export default class Builder {
 			dup.setReadable(outputStream);
 
 		})
-		.catch((err) => {
+		.catch((err: Error) => {
 			// Call the plugin's error handler
 			instance.callHook('buildFailure', [err.toString()]);
 		});
@@ -137,6 +137,49 @@ export default class Builder {
 		this.callHook('buildStream', [dup]);
 		// and also return it
 		return dup;
+	}
+
+	/**
+	 * Given a path, this function will create a tar stream containing all of the files,
+	 * and stream it to the docker daemon. It will then return a stream connected to
+	 * the output of the docker daemon.
+	 *
+	 * @param {string} dirPath
+	 *	The directory path to send to the docker daemon.
+	 *
+	 * @param {Object} buildOpts
+	 *	Build options to pass to the docker daemon.
+	 *
+	 * @returns {Promise<NodeJS.ReadableStream>}
+	 *	A stream which is connected to the output of the docker daemon
+	 */
+	public buildDir(dirPath: string, buildOpts: Object): Promise<NodeJS.ReadableStream> {
+		return new Promise<NodeJS.ReadableStream>((resolve, reject) => {
+
+			const pack = tar.pack();
+
+			Promise.all(
+				Promise.resolve(fs.readdir(dirPath))
+				.map((file: string) => {
+					// Build the fully qualified relative path
+					const relPath = path.join(dirPath, file);
+					const stats = fs.statSync(relPath);
+
+					// Add this file to the tar archive
+					// FIXME: Use streams to add to the tar archive
+					return pack.entryAsync({name: file, size: stats.size}, fs.readFileSync(relPath));
+				}))
+			.then(() => {
+				// Tell the tar stream we're done
+				pack.finalize();
+				// Create a build stream to send the data to
+				const stream = this.createBuildStream(buildOpts);
+				// Write the tar archive to the stream
+				pack.pipe(stream);
+				// ...and return it for reading
+				resolve(stream);
+			});
+		});
 	}
 
 	/**
@@ -155,53 +198,13 @@ export default class Builder {
 	private callHook = (hook: string, args: any[]) : any => {
 		if(hook in this.hooks) {
 			// Spread the arguments onto the callback function
-			return this.hooks[hook](...args);
-		} else {
-			return undefined;
+			let fn = this.hooks[hook];
+			if(fn !== undefined) {
+				return fn(...args);
+			}
 		}
+		return undefined;
 	}
 
-	/**
-	 * Given a path, this function will create a tar stream containing all of the files,
-	 * and stream it to the docker daemon. It will then return a stream connected to
-	 * the output of the docker daemon.
-	 *
-	 * @param {string} dirPath
-	 *	The directory path to send to the docker daemon.
-	 *
-	 * @param {Object} buildOpts
-	 *	Build options to pass to the docker daemon.
-	 *
-	 * @returns {Promise<NodeJS.ReadableStream>}
-	 *	A stream which is connected to the output of the docker daemon
-	 */
-	public buildDir(dirPath: string, buildOpts: Object): Promise<NodeJS.ReadableStream> {
-		return new Promise((resolve, reject) => {
-
-			let pack = tar.pack();
-
-			Promise.all(
-				fs.readdirAsync(dirPath)
-				.map((file) => {
-					// Build the fully qualified relative path
-					let relPath = path.join(dirPath, file);
-					let stats = fs.statSync(relPath);
-
-					// Add this file to the tar archive
-					// FIXME: Use streams to add to the tar archive
-					return pack.entryAsync({name: file, size: stats.size}, fs.readFileSync(relPath));
-				}))
-				.then(() => {
-					// Tell the tar stream we're done
-					pack.finalize();
-					// Create a build stream to send the data to
-					let stream = this.createBuildStream(buildOpts);
-					// Write the tar archive to the stream
-					pack.pipe(stream);
-					// ...and return it for reading
-					resolve(stream);
-				});
-		});
-	}
 }
 

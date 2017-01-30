@@ -9,7 +9,12 @@
  * Because of this the minimum recommended registered hooks are buildSuccess and buildFailure,
  * but this is not enforced, or required.
  */
-export interface BuildHooks {
+export interface IBuildHooks {
+
+	/**
+	 * Index signature
+	 */
+	[key: string]: ((...args: any[]) => any) | undefined;
 
 	/**
 	 * This hook is called after a build is started, with `stream` being populated with
@@ -63,4 +68,3 @@ export interface BuildHooks {
 	getPreviousImage?: () => string;
 
 }
-

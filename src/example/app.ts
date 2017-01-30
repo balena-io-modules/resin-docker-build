@@ -1,11 +1,11 @@
 const tar = require('tar-stream');
 const fs = require('fs');
-const _ = require('lodash');
 
-import Builder from "../index";
-import { BuildHooks } from "../plugin";
-import { ProjectType } from "./project-type";
+import * as _ from 'lodash';
 
+import Builder from '../index';
+import { IBuildHooks } from '../plugin';
+import { ProjectType } from './project-type';
 
 /**
  * Given an input tar stream, this function will resolve Dockerfile.template
@@ -14,13 +14,13 @@ import { ProjectType } from "./project-type";
  * @returns {ReadableStream}
  *	A stream which when read, produces the project tar archive
  */
-let getProjectStream = (inputStream : NodeJS.ReadableStream) : NodeJS.ReadableStream => {
+const getProjectStream = (inputStream: NodeJS.ReadableStream) : NodeJS.ReadableStream => {
 	let extract = tar.extract();
 	let pack = tar.pack();
 
-	let proj : ProjectType = new ProjectType();
+	let proj = new ProjectType();
 	// Setup handling functions
-	extract.on('entry', (header, stream, next) => {
+	extract.on('entry', (header: Object, stream: NodeJS.ReadWriteStream, next: () => void) => {
 		// If the project type handler does not require the file,
 		// add it to the archive unchanged
 		if(!proj.provideEntry(stream, header)) {
@@ -42,11 +42,10 @@ let getProjectStream = (inputStream : NodeJS.ReadableStream) : NodeJS.ReadableSt
 	// Send the old tar archive to be unpacked
 	inputStream.pipe(extract);
 
-
 	return pack;
-}
+};
 
-let hooks : BuildHooks = {
+let hooks: IBuildHooks = {
 	buildSuccess: (imageId: string, layers: string[]) : void => {
 		console.log('Success hook is being called');
 		console.log(`Image Id: ${imageId}`);
@@ -59,7 +58,7 @@ let hooks : BuildHooks = {
 
 	buildStream: (stream: NodeJS.ReadWriteStream) : void => {
 		// Connect the output of the stream to the user's output
-		stream.on('data', (data) => {
+		stream.on('data', (data: Buffer) => {
 			console.log(data.toString().trim());
 		});
 
@@ -77,7 +76,3 @@ builder.registerHooks(hooks);
 
 // Initialise a build stream
 builder.createBuildStream({});
-
-
-
-
