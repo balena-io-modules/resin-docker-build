@@ -52,7 +52,7 @@ let hooks: IBuildHooks = {
 		console.log(`Image layers: ${JSON.stringify(layers, null, '  ')}`);
 	},
 
-	buildFailure: (error: string) : void => {
+	buildFailure: (error: Error) : void => {
 		console.error(`Error! Reason: ${error}`);
 	},
 

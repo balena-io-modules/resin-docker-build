@@ -53,7 +53,7 @@ export interface IBuildHooks {
      * @param {string} error
      *	This parameter will be populated with a string representation of the error.
      */
-    buildFailure?: (error: string) => void;
+    buildFailure?: (error: Error) => void;
     /**
      * This function is called before the docker daemon is initialised with the build
      * job. The hook should return the digest which points to the previous image, if

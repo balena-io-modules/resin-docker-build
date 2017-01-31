@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "A containerised builder which interacts with the docker remote API to perform builds.",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
     "start": "tsc && node lib/example/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -26,7 +27,6 @@
     "@types/jsonstream": "^0.8.28",
     "@types/lodash": "^4.14.51",
     "@types/mz": "0.0.30",
-    "@types/node": "^7.0.2",
-    "@types/promise": "^7.1.30"
+    "@types/node": "^7.0.2"
   }
 }

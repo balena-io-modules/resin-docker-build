@@ -56,7 +56,7 @@ export interface IBuildHooks {
 	 * @param {string} error
 	 *	This parameter will be populated with a string representation of the error.
 	 */
-	buildFailure?: (error: string) => void;
+	buildFailure?: (error: Error) => void;
 
 	/**
 	 * This function is called before the docker daemon is initialised with the build

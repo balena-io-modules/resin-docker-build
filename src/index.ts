@@ -106,7 +106,7 @@ export default class Builder {
 				if(data.error) {
 					// The build failed, pass this information through to the build failed
 					// callback.
-					instance.callHook('buildFailure', [data.error]);
+					instance.callHook('buildFailure', new Error(data.error));
 					dup.destroy(new Error(data.error));
 				} else {
 					// Store image layers, so that they can be deleted by the caller if necessary
@@ -122,7 +122,7 @@ export default class Builder {
 			// Setup the buildSuccess hook. This handler is not called on
 			// error so we can use it to propagate the success information
 			outputStream.on('end', () => {
-				this.callHook('buildSuccess', [_.last(this.layers), this.layers]);
+				this.callHook('buildSuccess', _.last(this.layers), this.layers);
 			});
 			// Connect the output of the docker daemon to the duplex stream
 			dup.setReadable(outputStream);
@@ -130,11 +130,11 @@ export default class Builder {
 		})
 		.catch((err: Error) => {
 			// Call the plugin's error handler
-			instance.callHook('buildFailure', [err.toString()]);
+			instance.callHook('buildFailure', err);
 		});
 
 		// Call the correct hook with the build stream
-		this.callHook('buildStream', [dup]);
+		this.callHook('buildStream', dup);
 		// and also return it
 		return dup;
 	}
@@ -161,15 +161,13 @@ export default class Builder {
 			Promise.all(
 				Promise.resolve(fs.readdir(dirPath))
 				.map((file: string) => {
-					// Build the fully qualified relative path
 					const relPath = path.join(dirPath, file);
-					const stats = fs.statSync(relPath);
-
-					// Add this file to the tar archive
-					// FIXME: Use streams to add to the tar archive
-					return pack.entryAsync({name: file, size: stats.size}, fs.readFileSync(relPath));
-				}))
-			.then(() => {
+					return Promise.all([file, fs.stat(relPath), fs.readFile(relPath)]);
+				})
+				.map((fileInfo: any[]) => {
+					return pack.entryAsync({ name: fileInfo[0], size: fileInfo[1].size }, fileInfo[2]);
+				})
+			).then(() => {
 				// Tell the tar stream we're done
 				pack.finalize();
 				// Create a build stream to send the data to
@@ -195,7 +193,7 @@ export default class Builder {
 	 * @returns {any} The return value of the function, or nothing if the
 	 * function does not exist or does not provide a return value
 	 */
-	private callHook = (hook: string, args: any[]) : any => {
+	private callHook = (hook: string, ...args: any[]) : any => {
 		if(hook in this.hooks) {
 			// Spread the arguments onto the callback function
 			let fn = this.hooks[hook];
