@@ -14,7 +14,7 @@ export interface IBuildHooks {
 	/**
 	 * Index signature
 	 */
-	[key: string]: ((...args: any[]) => any) | undefined;
+	[key: string]: ((...args: any[]) => any) | undefined
 
 	/**
 	 * This hook is called after a build is started, with `stream` being populated with
@@ -35,7 +35,7 @@ export interface IBuildHooks {
 	 * }
 	 *
 	 */
-	buildStream?: (stream: NodeJS.ReadWriteStream) => void;
+	buildStream?: (stream: NodeJS.ReadWriteStream) => void
 
 	/**
 	 * This hook will be called after a build has finished successfully.
@@ -48,15 +48,15 @@ export interface IBuildHooks {
 	 *	id in the layers array is also the imageId, so care should be taken to
 	 *	not GC the built image.
 	 */
-	buildSuccess?: (imageId: string, layers: string[]) => void;
+	buildSuccess?: (imageId: string, layers: string[]) => void
 
 	/**
 	 * This hook will be called in the event of a build failure.
 	 *
-	 * @param {string} error
-	 *	This parameter will be populated with a string representation of the error.
+	 * @param {Error} error
+	 *	The error which caused the build failure
 	 */
-	buildFailure?: (error: Error) => void;
+	buildFailure?: (error: Error) => void
 
 	/**
 	 * This function is called before the docker daemon is initialised with the build
@@ -65,6 +65,6 @@ export interface IBuildHooks {
 	 * machine already, the caller will need to pull it.
 	 *
 	 */
-	getPreviousImage?: () => string;
+	getPreviousImage?: () => string
 
 }

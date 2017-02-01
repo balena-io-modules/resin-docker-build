@@ -10,24 +10,24 @@
  *	Either the sha string, or undefined
  */
 export function extractLayer(message: string): string | undefined {
-	const extract = extractArrowMessage(message);
-	if(extract !== undefined) {
-		const shaRegex = /([a-f0-9]{12}[a-f0-9]*)/g;
-		const match = shaRegex.exec(extract);
-		if(match) {
-			return match[1];
+	const extract = extractArrowMessage(message)
+	if (extract !== undefined) {
+		const shaRegex = /([a-f0-9]{12}[a-f0-9]*)/g
+		const match = shaRegex.exec(extract)
+		if (match) {
+			return match[1]
 		}
 	}
 
-	return;
+	return
 }
 
 function extractArrowMessage(message: string): string | undefined {
-	let arrowTest = /^\s*-+>\s*(.+)/i;
-	let match = arrowTest.exec(message);
+	let arrowTest = /^\s*-+>\s*(.+)/i
+	let match = arrowTest.exec(message)
 	if (match) {
-		return match[1];
+		return match[1]
 	} else {
-		return undefined;
+		return undefined
 	}
 }

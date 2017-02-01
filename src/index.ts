@@ -1,23 +1,23 @@
 
-import * as Promise from 'bluebird';
-import * as _ from 'lodash';
-import * as fs from 'mz/fs';
-import * as path from 'path';
+import * as Promise from 'bluebird'
+import * as _ from 'lodash'
+import * as fs from 'mz/fs'
+import * as path from 'path'
 
 // Type-less imports
-const tar = require('tar-stream');
-const duplexify = require('duplexify');
+const tar = require('tar-stream')
+const duplexify = require('duplexify')
 // Following types are available, but do not work...
-const Docker = require('dockerode');
-const es = require('event-stream');
-const JSONStream = require('JSONStream');
+const Docker = require('dockerode')
+const es = require('event-stream')
+const JSONStream = require('JSONStream')
 
 // Import hook definitions
-import * as Plugin from './plugin';
-import * as Utils from './utils';
+import * as Plugin from './plugin'
+import * as Utils from './utils'
 
-Promise.promisifyAll(Docker.prototype);
-Promise.promisifyAll(tar);
+Promise.promisifyAll(Docker.prototype)
+Promise.promisifyAll(tar)
 
 /**
  * This class is responsible for interfacing with the docker daemon to
@@ -28,11 +28,11 @@ Promise.promisifyAll(tar);
  */
 export default class Builder {
 
-	private docker: any;
+	private docker: any
 	// Initialise the hooks to the empty object to ensure
 	// we don't get undefined errors.
-	private hooks: Plugin.IBuildHooks = {};
-	private layers: string[];
+	private hooks: Plugin.IBuildHooks = {}
+	private layers: string[]
 
 	/**
 	 * Initialise the builder class, with a pointer to the docker socket.
@@ -41,7 +41,7 @@ export default class Builder {
 	 * new Builder('/var/run/docker.sock')
 	 */
 	constructor(dockerPath: string) {
-		this.docker = new Docker({ socketPath: dockerPath });
+		this.docker = new Docker({ socketPath: dockerPath })
 	}
 
 	/**
@@ -67,7 +67,7 @@ export default class Builder {
 	 *
 	 */
 	public registerHooks(hooks: Plugin.IBuildHooks): void {
-		this.hooks = hooks;
+		this.hooks = hooks
 	}
 
 	/**
@@ -82,18 +82,18 @@ export default class Builder {
 	 */
 	public createBuildStream(buildOpts: Object): NodeJS.ReadWriteStream {
 
-		const instance = this;
+		const instance = this
 
-		this.layers = [];
+		this.layers = []
 
 		// Create a stream to be passed into the docker daemon
-		const inputStream = es.through();
+		const inputStream = es.through()
 
 		// Create a bi-directional stream
-		const dup = duplexify();
+		const dup = duplexify()
 
 		// Connect the input stream to the rw stream
-		dup.setWritable(inputStream);
+		dup.setWritable(inputStream)
 
 		this.docker.buildImageAsync(inputStream, buildOpts)
 		.then((res: NodeJS.ReadWriteStream) => {
@@ -103,40 +103,40 @@ export default class Builder {
 			.pipe(JSONStream.parse())
 			// Don't use fat-arrow syntax here, to capture 'this' from es
 			.pipe(es.through(function(data: any) {
-				if(data.error) {
+				if (data.error) {
 					// The build failed, pass this information through to the build failed
 					// callback.
-					instance.callHook('buildFailure', new Error(data.error));
-					dup.destroy(new Error(data.error));
+					instance.callHook('buildFailure', new Error(data.error))
+					dup.destroy(new Error(data.error))
 				} else {
 					// Store image layers, so that they can be deleted by the caller if necessary
-					let sha = Utils.extractLayer(data.stream);
-					if(sha !== undefined) {
-						instance.layers.push(sha);
+					let sha = Utils.extractLayer(data.stream)
+					if (sha !== undefined) {
+						instance.layers.push(sha)
 					}
 
-					this.emit('data', data.stream);
+					this.emit('data', data.stream)
 				}
-			}));
+			}))
 
 			// Setup the buildSuccess hook. This handler is not called on
 			// error so we can use it to propagate the success information
 			outputStream.on('end', () => {
-				this.callHook('buildSuccess', _.last(this.layers), this.layers);
-			});
+				this.callHook('buildSuccess', _.last(this.layers), this.layers)
+			})
 			// Connect the output of the docker daemon to the duplex stream
-			dup.setReadable(outputStream);
+			dup.setReadable(outputStream)
 
 		})
 		.catch((err: Error) => {
 			// Call the plugin's error handler
-			instance.callHook('buildFailure', err);
-		});
+			instance.callHook('buildFailure', err)
+		})
 
 		// Call the correct hook with the build stream
-		this.callHook('buildStream', dup);
+		this.callHook('buildStream', dup)
 		// and also return it
-		return dup;
+		return dup
 	}
 
 	/**
@@ -156,28 +156,28 @@ export default class Builder {
 	public buildDir(dirPath: string, buildOpts: Object): Promise<NodeJS.ReadableStream> {
 		return new Promise<NodeJS.ReadableStream>((resolve, reject) => {
 
-			const pack = tar.pack();
+			const pack = tar.pack()
 
 			Promise.all(
 				Promise.resolve(fs.readdir(dirPath))
 				.map((file: string) => {
-					const relPath = path.join(dirPath, file);
-					return Promise.all([file, fs.stat(relPath), fs.readFile(relPath)]);
+					const relPath = path.join(dirPath, file)
+					return Promise.all([file, fs.stat(relPath), fs.readFile(relPath)])
 				})
 				.map((fileInfo: any[]) => {
-					return pack.entryAsync({ name: fileInfo[0], size: fileInfo[1].size }, fileInfo[2]);
+					return pack.entryAsync({ name: fileInfo[0], size: fileInfo[1].size }, fileInfo[2])
 				})
 			).then(() => {
 				// Tell the tar stream we're done
-				pack.finalize();
+				pack.finalize()
 				// Create a build stream to send the data to
-				const stream = this.createBuildStream(buildOpts);
+				const stream = this.createBuildStream(buildOpts)
 				// Write the tar archive to the stream
-				pack.pipe(stream);
+				pack.pipe(stream)
 				// ...and return it for reading
-				resolve(stream);
-			});
-		});
+				resolve(stream)
+			})
+		})
 	}
 
 	/**
@@ -194,14 +194,14 @@ export default class Builder {
 	 * function does not exist or does not provide a return value
 	 */
 	private callHook = (hook: string, ...args: any[]) : any => {
-		if(hook in this.hooks) {
+		if (hook in this.hooks) {
 			// Spread the arguments onto the callback function
-			let fn = this.hooks[hook];
-			if(fn !== undefined) {
-				return fn(...args);
+			let fn = this.hooks[hook]
+			if (fn !== undefined) {
+				return fn(...args)
 			}
 		}
-		return undefined;
+		return undefined
 	}
 
 }
