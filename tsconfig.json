@@ -1,12 +1,17 @@
 {
   "compilerOptions": {
-    "declaration": true,
-    "rootDir": "./src/",
+    "module": "commonjs",
+    "rootDir": "./src",
     "outDir": "./lib/",
-    "types": ["node"]
+    "sourceMap": true,
+    "types": ["node"],
+    "target": "es6",
+    "noImplicitAny": true,
+    "strictNullChecks": true
   },
   "exclude": [
     "node_modules",
-    "lib"
+    "lib",
+    "tests"
   ]
 }
