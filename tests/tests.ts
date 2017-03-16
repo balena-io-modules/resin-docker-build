@@ -45,7 +45,6 @@ const getFailureHooks = (done: Function): BuildHooks => {
 }
 
 describe('Directory build', () => {
-
 	it('should build a directory image', function(done) {
 		// Give the build 60 seconds to finish
 		this.timeout(60000)

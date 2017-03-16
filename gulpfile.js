@@ -8,7 +8,7 @@ const tsProject = typescript.createProject('tsconfig.json')
 const OPTIONS = {
 	dirs: {
 		sources: './src',
-		build: './lib'
+		build: './build'
 	}
 }
 

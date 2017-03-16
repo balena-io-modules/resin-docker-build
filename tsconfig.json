@@ -1,17 +1,19 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "rootDir": "./src",
-    "outDir": "./lib/",
+    "outDir": "./build/",
     "sourceMap": true,
     "types": ["node"],
     "target": "es6",
     "noImplicitAny": true,
     "strictNullChecks": true
   },
+  "include": [
+    "src/"
+  ],
   "exclude": [
     "node_modules",
-    "lib",
+    "build",
     "tests"
   ]
 }

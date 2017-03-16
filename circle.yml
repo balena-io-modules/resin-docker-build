@@ -2,3 +2,7 @@ machine:
   services:
     - docker
 
+test:
+  pre:
+    - npm list
+
