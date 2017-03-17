@@ -6,7 +6,7 @@
   "types": "src/index.ts",
   "scripts": {
     "build": "gulp",
-    "test": "mocha --compilers ts:ts-node/register tests/tests.ts"
+    "test": "gulp test"
   },
   "author": "Cameron Diver <cameron@resin.io>",
   "license": "Apache-2.0",
@@ -43,6 +43,7 @@
     "dts-generator": "^2.1.0",
     "gulp": "^3.9.1",
     "gulp-clean": "^0.3.2",
+    "gulp-mocha": "^4.1.0",
     "gulp-shell": "^0.6.1",
     "gulp-sourcemaps": "^2.4.1",
     "gulp-typescript": "^3.1.5",
