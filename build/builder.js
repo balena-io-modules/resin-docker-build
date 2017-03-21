@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const Promise = require("bluebird");
 const Dockerode = require("dockerode");
 const _ = require("lodash");
@@ -155,7 +156,6 @@ class Builder {
         return;
     }
 }
-Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Builder;
 
 //# sourceMappingURL=builder.js.map

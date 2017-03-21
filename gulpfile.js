@@ -3,14 +3,25 @@ const gutil = require('gulp-util')
 const gclean = require('gulp-clean')
 const typescript = require('gulp-typescript')
 const sourcemaps = require('gulp-sourcemaps')
+const gmocha = require('gulp-mocha')
+const tsnode = require('ts-node/register')
 const tsProject = typescript.createProject('tsconfig.json')
 
 const OPTIONS = {
 	dirs: {
 		sources: './src',
-		build: './lib'
+		build: './build'
 	}
 }
+
+gulp.task('test', () => {
+	gulp.src('tests/tests.ts')
+		.pipe(gmocha({
+			compilers: [
+				'js:ts-node/register'
+			]
+		}))
+})
 
 gulp.task('clean', () => {
 	return gulp.src(OPTIONS.dirs.build, { read: false })

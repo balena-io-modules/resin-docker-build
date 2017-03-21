@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Given a docker 'arrow message' containing a sha representing
  * a layer, extract the sha digest. If the string passed in is not

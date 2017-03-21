@@ -18,12 +18,6 @@ export type ValidHook = 'buildStream'
  * but this is not enforced, or required.
  */
 export interface BuildHooks {
-
-	/**
-	 * Index signature
-	 */
-	// [key: string]: ((...args: any[]) => any) | undefined
-
 	/**
 	 * This hook is called after a build is started, with `stream` being populated with
 	 * a ReadableStream which is connected to the output of the docker daemon.
