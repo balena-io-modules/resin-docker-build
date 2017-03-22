@@ -18,7 +18,7 @@ gulp.task('test', () => {
 	gulp.src('tests/tests.ts')
 		.pipe(gmocha({
 			compilers: [
-				'js:ts-node/register'
+				'ts:ts-node/register'
 			]
 		}))
 })
