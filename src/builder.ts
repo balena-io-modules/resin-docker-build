@@ -32,7 +32,6 @@ export default class Builder {
 
 	// Promisified types
 	private dockerAsync: any
-	private readdirBluebird = Promise.promisify(fs.readdir)
 
 	/**
 	 * Initialise the builder class, with a pointer to the docker socket.
@@ -141,10 +140,11 @@ export default class Builder {
 	public buildDir(dirPath: string, buildOpts: Object, hooks: Plugin.BuildHooks): Promise<NodeJS.ReadableStream> {
 		const pack = tar.pack()
 
-		return this.readdirBluebird(dirPath)
+		return Utils.directoryToFiles(dirPath)
 			.map((file: string) => {
-				const relPath = path.join(dirPath, file)
-				return Promise.all([file, fs.stat(relPath), fs.readFile(relPath)])
+				// Work out the relative path
+				const relPath = path.relative(path.resolve(dirPath), file)
+				return Promise.all([relPath, fs.stat(file), fs.readFile(file)])
 			})
 			.map((fileInfo: [string, fs.Stats, Buffer]) => {
 				return pack.entryAsync({ name: fileInfo[0], size: fileInfo[1].size }, fileInfo[2])
