@@ -1,3 +1,5 @@
+import * as Promise from 'bluebird'
+import * as klaw from 'klaw'
 
 /**
  * Given a docker 'arrow message' containing a sha representing
@@ -30,4 +32,26 @@ const extractArrowMessage = (message: string): string | undefined => {
 	} else {
 		return
 	}
+}
+
+/**
+ * Go through an entire directory, splitting the entries out
+ * into a list of paths to work through.
+ */
+export const directoryToFiles = (dirPath: string): Promise<string[]> => {
+	return new Promise<string[]>((resolve, reject) => {
+		const files: string[] = []
+
+		// Walk the directory
+		klaw(dirPath)
+		.on('data', (item: klaw.Item) => {
+			if (!item.stats.isDirectory()) {
+				files.push(item.path)
+			}
+		})
+		.on('end', () => {
+			resolve(files)
+		})
+		.on('error', reject)
+	})
 }

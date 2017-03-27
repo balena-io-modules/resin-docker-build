@@ -29,7 +29,6 @@ class Builder {
      * new Builder({ socketPath: '/var/run/docker.sock' })
      */
     constructor(dockerOpts) {
-        this.readdirBluebird = Promise.promisify(fs.readdir);
         this.docker = new Dockerode(dockerOpts);
         this.dockerAsync = Promise.promisifyAll(this.docker);
     }
@@ -113,10 +112,11 @@ class Builder {
      */
     buildDir(dirPath, buildOpts, hooks) {
         const pack = tar.pack();
-        return this.readdirBluebird(dirPath)
+        return Utils.directoryToFiles(dirPath)
             .map((file) => {
-            const relPath = path.join(dirPath, file);
-            return Promise.all([file, fs.stat(relPath), fs.readFile(relPath)]);
+            // Work out the relative path
+            const relPath = path.relative(path.resolve(dirPath), file);
+            return Promise.all([relPath, fs.stat(file), fs.readFile(file)]);
         })
             .map((fileInfo) => {
             return pack.entryAsync({ name: fileInfo[0], size: fileInfo[1].size }, fileInfo[2]);

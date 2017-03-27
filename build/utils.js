@@ -1,5 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const Promise = require("bluebird");
+const klaw = require("klaw");
 /**
  * Given a docker 'arrow message' containing a sha representing
  * a layer, extract the sha digest. If the string passed in is not
@@ -30,6 +32,26 @@ const extractArrowMessage = (message) => {
     else {
         return;
     }
+};
+/**
+ * Go through an entire directory, splitting the entries out
+ * into a list of paths to work through.
+ */
+exports.directoryToFiles = (dirPath) => {
+    return new Promise((resolve, reject) => {
+        const files = [];
+        // Walk the directory
+        klaw(dirPath)
+            .on('data', (item) => {
+            if (!item.stats.isDirectory()) {
+                files.push(item.path);
+            }
+        })
+            .on('end', () => {
+            resolve(files);
+        })
+            .on('error', reject);
+    });
 };
 
 //# sourceMappingURL=utils.js.map
