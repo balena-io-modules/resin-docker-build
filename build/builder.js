@@ -125,7 +125,9 @@ class Builder {
             // Tell the tar stream we're done
             pack.finalize();
             // Create a build stream to send the data to
-            const stream = this.createBuildStream(buildOpts, hooks);
+            let stream = this.createBuildStream(buildOpts, hooks);
+            // Transform the stream if necessary
+            stream = this.callHook(hooks, 'buildTransform', stream) || stream;
             // Write the tar archive to the stream
             pack.pipe(stream);
             // ...and return it for reading
