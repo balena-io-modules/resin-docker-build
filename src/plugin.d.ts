@@ -5,7 +5,6 @@
 export type ValidHook = 'buildStream'
                       | 'buildSuccess'
                       | 'buildFailure'
-                      | 'buildTransform'
 
 /**
  * BuildHooks
@@ -58,18 +57,4 @@ export interface BuildHooks {
 	 *	The error which caused the build failure
 	 */
 	buildFailure?: (error: Error) => void
-
-	/**
-	 * If using the `buildDir` interface of the API, this callback will be called
-	 * before the stream is finally sent to the docker daemon. Perform any changes
-	 * to the context in this callback.
-	 *
-	 * In the case of using the `createBuildStream` function in the API, this callback
-	 * will NOT be called with the build stream.
-	 *
-	 * @param {NodeJS.ReadWriteStream} stream
-	 *	The stream created by the buildDir function. When consumed will produce a
-	 *	tar archive containing the build context
- 	 */
-	buildTransform?: (stream: NodeJS.ReadWriteStream) => NodeJS.ReadWriteStream
 }

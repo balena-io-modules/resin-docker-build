@@ -154,10 +154,6 @@ export default class Builder {
 				pack.finalize()
 				// Create a build stream to send the data to
 				let stream = this.createBuildStream(buildOpts, hooks)
-
-				// Transform the stream if necessary
-				stream = this.callHook(hooks, 'buildTransform', stream) || stream
-
 				// Write the tar archive to the stream
 				pack.pipe(stream)
 				// ...and return it for reading
