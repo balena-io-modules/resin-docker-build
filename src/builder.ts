@@ -18,6 +18,9 @@ import * as Utils from './utils'
 Promise.promisifyAll(Dockerode)
 Promise.promisifyAll(tar)
 
+export type ErrorHandler = (error: Error) => void
+const emptyHandler: ErrorHandler = () => {}
+
 /**
  * This class is responsible for interfacing with the docker daemon to
  * start and monitor a build. Most use cases will require a call to
@@ -55,7 +58,7 @@ export default class Builder {
 	 *	A promise which resolves with a bi-directional stream, which is connected
 	 *	to the docker daemon.
 	 */
-	public createBuildStream(buildOpts: Object, hooks: Plugin.BuildHooks = {}): NodeJS.ReadWriteStream {
+	public createBuildStream(buildOpts: Object, hooks: Plugin.BuildHooks = {}, handler: ErrorHandler = emptyHandler): NodeJS.ReadWriteStream {
 
 		const self = this
 
@@ -97,16 +100,16 @@ export default class Builder {
 
 			// Catch any errors the stream produces
 			outputStream.on('error', (err: Error) => {
-				self.callHook(hooks, 'buildFailure', err)
+				self.callHook(hooks, 'buildFailure', handler, err)
 			})
 			dup.on('error', (err: Error) => {
-				self.callHook(hooks, 'buildFailure', err)
+				self.callHook(hooks, 'buildFailure', handler, err)
 			})
 
 			// Setup the buildSuccess hook. This handler is not called on
 			// error so we can use it to propagate the success information
 			outputStream.on('end', () => {
-				this.callHook(hooks, 'buildSuccess', _.last(this.layers), this.layers)
+				this.callHook(hooks, 'buildSuccess', handler, _.last(this.layers), this.layers)
 			})
 			// Connect the output of the docker daemon to the duplex stream
 			dup.setReadable(outputStream)
@@ -114,11 +117,11 @@ export default class Builder {
 		})
 		.catch((err: Error) => {
 			// Call the plugin's error handler
-			self.callHook(hooks, 'buildFailure', err)
+			self.callHook(hooks, 'buildFailure', handler, err)
 		})
 
 		// Call the correct hook with the build stream
-		this.callHook(hooks, 'buildStream', dup)
+		this.callHook(hooks, 'buildStream', handler, dup)
 		// and also return it
 		return dup
 	}
@@ -137,7 +140,7 @@ export default class Builder {
 	 * @returns {Promise<NodeJS.ReadableStream>}
 	 *	A stream which is connected to the output of the docker daemon
 	 */
-	public buildDir(dirPath: string, buildOpts: Object, hooks: Plugin.BuildHooks): Promise<NodeJS.ReadableStream> {
+	public buildDir(dirPath: string, buildOpts: Object, hooks: Plugin.BuildHooks, handler: ErrorHandler = emptyHandler): Promise<NodeJS.ReadableStream> {
 		const pack = tar.pack()
 
 		return Utils.directoryToFiles(dirPath)
@@ -153,7 +156,7 @@ export default class Builder {
 				// Tell the tar stream we're done
 				pack.finalize()
 				// Create a build stream to send the data to
-				let stream = this.createBuildStream(buildOpts, hooks)
+				let stream = this.createBuildStream(buildOpts, hooks, handler)
 				// Write the tar archive to the stream
 				pack.pipe(stream)
 				// ...and return it for reading
@@ -174,15 +177,26 @@ export default class Builder {
 	 * @returns {any} The return value of the function, or nothing if the
 	 * function does not exist or does not provide a return value
 	 */
-	private callHook(hooks: Plugin.BuildHooks, hook: Plugin.ValidHook, ...args: any[]): any {
+	private callHook(hooks: Plugin.BuildHooks, hook: Plugin.ValidHook, handler: ErrorHandler, ...args: any[]): Promise<any> {
 		if (hook in hooks) {
-			// Spread the arguments onto the callback function
-			const fn = hooks[hook]
-			if (_.isFunction(fn)) {
-				return fn.apply(null, args)
+			try {
+				// Spread the arguments onto the callback function
+				const fn = hooks[hook]
+				if (_.isFunction(fn)) {
+					const val = fn.apply(null, args)
+					// If we can add a catch handler
+					if(_.isFunction(val.catch) && _.isFunction(handler)) {
+						val.catch(handler)
+					}
+					return val
+				}
+			} catch (e) {
+				if (_.isFunction(handler)) {
+					handler(e)
+				}
 			}
 		}
-		return
+		return Promise.resolve()
 	}
 
 }
