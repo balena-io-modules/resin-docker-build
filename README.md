@@ -46,15 +46,6 @@ the intermediate layers used by docker. Can be useful for cleanup.
 Called by the builder when a build has failed for whatever reason. The reason is provided as a standard
 node error object. This was also close the build stream. No more hooks will be called after this.
 
-* `buildTransform(stream: ReadWriteStream): ReadWriteStream`
-
-Use this hook to transform the stream of data, after it has been tarred by
-`buildDir`. This can be useful to change certain aspects of the build context
-before it gets sent to the docker daemon.
-
-Note: This hook is **NOT** called when any other API call but `buildDir` is
-used.
-
 ## Examples
 
 Examples are provided in typescript.
