@@ -14,17 +14,28 @@ All building is done via the `Builder` object.
 
 The `Builder` API has two top-level methods, which are used to trigger builds;
 
-* `createBuildStream(buildOpts: Object, hooks: BuildHooks): ReadWriteStream`
+* `createBuildStream(buildOpts: Object, hooks: BuildHooks, handler: ErrorHandler): ReadWriteStream`
 
 Initialise a docker daemon and set it up to wait for some streaming data. The stream is returned to the
 caller for both reading and writing. Success and failure callbacks are provided via the hooks interface
 (see below). `buildOpts` is passed directly to the docker daemon and the expected input by the daemon is
 is a tar stream.
 
-* `buildDir(directory: string, buildOpts: Object, hooks: BuildHooks): ReadWriteStream`
+* `buildDir(directory: string, buildOpts: Object, hooks: BuildHooks, handler: ErrorHandler): ReadWriteStream`
 
 Inform the docker daemon to build a directory on the host. A stream is returned for reading, and
 the same success/failure callbacks apply. `buildOpts` is passed directly to the docker daemon.
+
+
+* The `handler` parameter:
+
+If an exception is thrown from within the hooks, because it is executing in a
+different context to the initial api call they will not be propagated. Using
+the error handler means that you can handle the error as necessary (for instance
+propagate to your global catch, or integrate it into a promise chain using
+`reject` as a handler). The error handler is optional. Note that the error
+handler will not be called with a build error, instead with that being dropped
+to the `buildFailure` hook, but if that hook throws, the handler will be called.
 
 ## Hooks
 

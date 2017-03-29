@@ -14,6 +14,7 @@ const JSONStream = require('JSONStream');
 const Utils = require("./utils");
 Promise.promisifyAll(Dockerode);
 Promise.promisifyAll(tar);
+const emptyHandler = () => { };
 /**
  * This class is responsible for interfacing with the docker daemon to
  * start and monitor a build. Most use cases will require a call to
@@ -42,7 +43,7 @@ class Builder {
      *	A promise which resolves with a bi-directional stream, which is connected
      *	to the docker daemon.
      */
-    createBuildStream(buildOpts, hooks = {}) {
+    createBuildStream(buildOpts, hooks = {}, handler = emptyHandler) {
         const self = this;
         this.layers = [];
         // Create a stream to be passed into the docker daemon
@@ -74,25 +75,25 @@ class Builder {
             }));
             // Catch any errors the stream produces
             outputStream.on('error', (err) => {
-                self.callHook(hooks, 'buildFailure', err);
+                self.callHook(hooks, 'buildFailure', handler, err);
             });
             dup.on('error', (err) => {
-                self.callHook(hooks, 'buildFailure', err);
+                self.callHook(hooks, 'buildFailure', handler, err);
             });
             // Setup the buildSuccess hook. This handler is not called on
             // error so we can use it to propagate the success information
             outputStream.on('end', () => {
-                this.callHook(hooks, 'buildSuccess', _.last(this.layers), this.layers);
+                this.callHook(hooks, 'buildSuccess', handler, _.last(this.layers), this.layers);
             });
             // Connect the output of the docker daemon to the duplex stream
             dup.setReadable(outputStream);
         })
             .catch((err) => {
             // Call the plugin's error handler
-            self.callHook(hooks, 'buildFailure', err);
+            self.callHook(hooks, 'buildFailure', handler, err);
         });
         // Call the correct hook with the build stream
-        this.callHook(hooks, 'buildStream', dup);
+        this.callHook(hooks, 'buildStream', handler, dup);
         // and also return it
         return dup;
     }
@@ -110,7 +111,7 @@ class Builder {
      * @returns {Promise<NodeJS.ReadableStream>}
      *	A stream which is connected to the output of the docker daemon
      */
-    buildDir(dirPath, buildOpts, hooks) {
+    buildDir(dirPath, buildOpts, hooks, handler = emptyHandler) {
         const pack = tar.pack();
         return Utils.directoryToFiles(dirPath)
             .map((file) => {
@@ -125,9 +126,7 @@ class Builder {
             // Tell the tar stream we're done
             pack.finalize();
             // Create a build stream to send the data to
-            let stream = this.createBuildStream(buildOpts, hooks);
-            // Transform the stream if necessary
-            stream = this.callHook(hooks, 'buildTransform', stream) || stream;
+            let stream = this.createBuildStream(buildOpts, hooks, handler);
             // Write the tar archive to the stream
             pack.pipe(stream);
             // ...and return it for reading
@@ -147,15 +146,27 @@ class Builder {
      * @returns {any} The return value of the function, or nothing if the
      * function does not exist or does not provide a return value
      */
-    callHook(hooks, hook, ...args) {
+    callHook(hooks, hook, handler, ...args) {
         if (hook in hooks) {
-            // Spread the arguments onto the callback function
-            const fn = hooks[hook];
-            if (_.isFunction(fn)) {
-                return fn.apply(null, args);
+            try {
+                // Spread the arguments onto the callback function
+                const fn = hooks[hook];
+                if (_.isFunction(fn)) {
+                    const val = fn.apply(null, args);
+                    // If we can add a catch handler
+                    if (_.isFunction(val.catch) && _.isFunction(handler)) {
+                        val.catch(handler);
+                    }
+                    return val;
+                }
+            }
+            catch (e) {
+                if (_.isFunction(handler)) {
+                    handler(e);
+                }
             }
         }
-        return;
+        return Promise.resolve();
     }
 }
 exports.default = Builder;

@@ -180,3 +180,33 @@ describe('Tar stream build', () => {
 	})
 })
 
+describe('Error handler', () => {
+	it('should catch a synchronous error from a hook', function(done) {
+		const handler = () => {
+			done()
+		}
+		const hooks: BuildHooks = {
+			buildStream: (stream) => {
+				throw new Error('Should be caught')
+			}
+		}
+		const builder = new Builder({ socketPath: dockerPath })
+		builder.createBuildStream({}, hooks, handler)
+	})
+
+	it('should catch an asynchronous error from a hook', function (done) {
+		const handler = () => {
+			done()
+		}
+		const hooks: BuildHooks = {
+			buildStream: (stream) => {
+				return new Promise((resolve, reject) => {
+					reject(new Error('test'))
+				})
+			}
+		}
+		const builder = new Builder({ socketPath: dockerPath })
+		builder.createBuildStream({}, hooks, handler)
+	})
+})
+
