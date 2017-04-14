@@ -185,7 +185,7 @@ export default class Builder {
 				if (_.isFunction(fn)) {
 					const val = fn.apply(null, args)
 					// If we can add a catch handler
-					if(_.isFunction(val.catch) && _.isFunction(handler)) {
+					if(val != null && _.isFunction(val.catch) && _.isFunction(handler)) {
 						val.catch(handler)
 					}
 					return val
