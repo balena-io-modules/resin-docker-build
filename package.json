@@ -1,6 +1,6 @@
 {
   "name": "resin-docker-build",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "A containerised builder which interacts with the docker remote API to perform builds.",
   "main": "build/index.js",
   "types": "src/index.ts",
