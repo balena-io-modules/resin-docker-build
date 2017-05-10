@@ -178,6 +178,38 @@ describe('Tar stream build', () => {
 		builder.createBuildStream({}, hooks)
 
 	})
+
+	it('should return successful layers upon failure', function() {
+		this.timeout(60000)
+		return new Promise((resolve, reject) => {
+
+			const tarStream = fs.createReadStream('tests/test-files/archives/failure-layers.tar')
+
+			const hooks: BuildHooks = {
+				buildSuccess: () => {
+					reject(new Error('Success failed on failing build'))
+				},
+				buildFailure: (error, layers) => {
+					if (layers.length !== 2) {
+						reject(new Error('Incorrect amount of layers return in error handler'))
+					}
+
+					resolve()
+				},
+				buildStream: (stream) => {
+					tarStream.pipe(stream)
+					if (displayOutput) {
+						stream.pipe(process.stdout)
+					}
+				}
+			}
+
+			const builder = new Builder({ socketPath: dockerPath })
+			builder.createBuildStream({}, hooks)
+
+		})
+
+	})
 })
 
 describe('Error handler', () => {
