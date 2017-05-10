@@ -66,7 +66,7 @@ class Builder {
                 else {
                     // Store image layers, so that they can be deleted by the caller
                     // if necessary
-                    let sha = Utils.extractLayer(data.stream);
+                    const sha = Utils.extractLayer(data.stream);
                     if (sha !== undefined) {
                         self.layers.push(sha);
                     }
@@ -75,10 +75,12 @@ class Builder {
             }));
             // Catch any errors the stream produces
             outputStream.on('error', (err) => {
-                self.callHook(hooks, 'buildFailure', handler, err);
+                const layers = self.layers.slice(0, -1);
+                self.callHook(hooks, 'buildFailure', handler, err, layers);
             });
             dup.on('error', (err) => {
-                self.callHook(hooks, 'buildFailure', handler, err);
+                const layers = self.layers.slice(0, -1);
+                self.callHook(hooks, 'buildFailure', handler, err, layers);
             });
             // Setup the buildSuccess hook. This handler is not called on
             // error so we can use it to propagate the success information
@@ -90,7 +92,8 @@ class Builder {
         })
             .catch((err) => {
             // Call the plugin's error handler
-            self.callHook(hooks, 'buildFailure', handler, err);
+            const layers = self.layers.slice(0, -1);
+            self.callHook(hooks, 'buildFailure', handler, err, layers);
         });
         // Call the correct hook with the build stream
         this.callHook(hooks, 'buildStream', handler, dup);
@@ -154,7 +157,7 @@ class Builder {
                 if (_.isFunction(fn)) {
                     const val = fn.apply(null, args);
                     // If we can add a catch handler
-                    if (_.isFunction(val.catch) && _.isFunction(handler)) {
+                    if (val != null && _.isFunction(val.catch) && _.isFunction(handler)) {
                         val.catch(handler);
                     }
                     return val;
