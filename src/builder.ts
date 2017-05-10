@@ -89,7 +89,7 @@ export default class Builder {
 				} else {
 					// Store image layers, so that they can be deleted by the caller
 					// if necessary
-					let sha = Utils.extractLayer(data.stream)
+					const sha = Utils.extractLayer(data.stream)
 					if (sha !== undefined) {
 						self.layers.push(sha)
 					}
@@ -100,10 +100,12 @@ export default class Builder {
 
 			// Catch any errors the stream produces
 			outputStream.on('error', (err: Error) => {
-				self.callHook(hooks, 'buildFailure', handler, err)
+				const layers = self.layers.slice(0, -1)
+				self.callHook(hooks, 'buildFailure', handler, err, layers)
 			})
 			dup.on('error', (err: Error) => {
-				self.callHook(hooks, 'buildFailure', handler, err)
+				const layers = self.layers.slice(0, -1)
+				self.callHook(hooks, 'buildFailure', handler, err, layers)
 			})
 
 			// Setup the buildSuccess hook. This handler is not called on
@@ -117,7 +119,8 @@ export default class Builder {
 		})
 		.catch((err: Error) => {
 			// Call the plugin's error handler
-			self.callHook(hooks, 'buildFailure', handler, err)
+			const layers = self.layers.slice(0, -1)
+			self.callHook(hooks, 'buildFailure', handler, err, layers)
 		})
 
 		// Call the correct hook with the build stream

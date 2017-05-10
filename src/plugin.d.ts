@@ -55,6 +55,9 @@ export interface BuildHooks {
 	 *
 	 * @param {Error} error
 	 *	The error which caused the build failure
+	 *
+	 * @param {string[]} layers
+	 *	The layer which were successful
 	 */
-	buildFailure?: (error: Error) => void
+	buildFailure?: (error: Error, layers: string[]) => void
 }
