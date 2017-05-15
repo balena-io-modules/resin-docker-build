@@ -15,7 +15,6 @@ const JSONStream = require('JSONStream')
 import * as Plugin from './plugin'
 import * as Utils from './utils'
 
-Promise.promisifyAll(Dockerode)
 Promise.promisifyAll(tar)
 
 export type ErrorHandler = (error: Error) => void
@@ -33,9 +32,6 @@ export default class Builder {
 	private docker: Dockerode
 	private layers: string[]
 
-	// Promisified types
-	private dockerAsync: any
-
 	/**
 	 * Initialise the builder class, with a pointer to the docker socket.
 	 *
@@ -46,14 +42,12 @@ export default class Builder {
 
 		let dockerObj: Dockerode
 		if ( !(dockerOpts instanceof Dockerode)) {
-			dockerObj = new Dockerode(dockerOpts)
+			dockerObj = new Dockerode(_.merge(dockerOpts, { Promise }))
 		} else {
 			dockerObj = dockerOpts
 		}
 
 		this.docker = dockerObj
-
-		this.dockerAsync = Promise.promisifyAll(this.docker)
 	}
 
 	/**
@@ -81,7 +75,7 @@ export default class Builder {
 		// Connect the input stream to the rw stream
 		dup.setWritable(inputStream)
 
-		this.dockerAsync.buildImageAsync(inputStream, buildOpts)
+		Promise.resolve(this.docker.buildImage(inputStream, buildOpts))
 		.then((res: NodeJS.ReadWriteStream) => {
 
 			const outputStream = res
