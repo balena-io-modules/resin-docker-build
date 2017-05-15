@@ -1,5 +1,5 @@
 import * as mocha from 'mocha'
-
+import * as Dockerode from 'dockerode'
 import * as fs from 'fs'
 
 import Builder from '../src/index'
@@ -209,6 +209,34 @@ describe('Tar stream build', () => {
 
 		})
 
+	})
+
+	it('should accept a pre-initialized dockerode object', function() {
+		this.timeout(60000)
+		return new Promise((resolve, reject) => {
+
+			const tarStream = fs.createReadStream('tests/test-files/archives/success.tar')
+
+			const hooks: BuildHooks = {
+				buildSuccess: () => {
+					resolve()
+				},
+				buildFailure: (e) => {
+					reject(e)
+				},
+				buildStream: (stream) => {
+					tarStream.pipe(stream)
+
+					if (displayOutput) {
+						stream.pipe(process.stdout)
+					}
+				}
+			}
+
+			const docker = new Dockerode({ socketPath: dockerPath })
+			const builder = new Builder(docker)
+			builder.createBuildStream({}, hooks)
+		})
 	})
 })
 

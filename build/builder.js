@@ -30,7 +30,14 @@ class Builder {
      * new Builder({ socketPath: '/var/run/docker.sock' })
      */
     constructor(dockerOpts) {
-        this.docker = new Dockerode(dockerOpts);
+        let dockerObj;
+        if (!(dockerOpts instanceof Dockerode)) {
+            dockerObj = new Dockerode(dockerOpts);
+        }
+        else {
+            dockerObj = dockerOpts;
+        }
+        this.docker = dockerObj;
         this.dockerAsync = Promise.promisifyAll(this.docker);
     }
     /**
