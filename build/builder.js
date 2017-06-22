@@ -12,7 +12,6 @@ const duplexify = require('duplexify');
 const es = require('event-stream');
 const JSONStream = require('JSONStream');
 const Utils = require("./utils");
-Promise.promisifyAll(Dockerode);
 Promise.promisifyAll(tar);
 const emptyHandler = () => { };
 /**
@@ -32,13 +31,12 @@ class Builder {
     constructor(dockerOpts) {
         let dockerObj;
         if (!(dockerOpts instanceof Dockerode)) {
-            dockerObj = new Dockerode(dockerOpts);
+            dockerObj = new Dockerode(_.merge(dockerOpts, { Promise }));
         }
         else {
             dockerObj = dockerOpts;
         }
         this.docker = dockerObj;
-        this.dockerAsync = Promise.promisifyAll(this.docker);
     }
     /**
      * Start a build with the docker daemon, and return the stream to the caller.
@@ -59,7 +57,7 @@ class Builder {
         const dup = duplexify();
         // Connect the input stream to the rw stream
         dup.setWritable(inputStream);
-        this.dockerAsync.buildImageAsync(inputStream, buildOpts)
+        Promise.resolve(this.docker.buildImage(inputStream, buildOpts))
             .then((res) => {
             const outputStream = res
                 .pipe(JSONStream.parse())
