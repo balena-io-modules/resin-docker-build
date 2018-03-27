@@ -1,24 +1,22 @@
-import * as Promise from 'bluebird'
-import * as Dockerode from 'dockerode'
-import * as _ from 'lodash'
-import * as fs from 'mz/fs'
-import * as path from 'path'
+import * as Promise from 'bluebird';
+import * as Dockerode from 'dockerode';
+import * as JSONStream from 'JSONStream';
+import * as _ from 'lodash';
+import * as fs from 'mz/fs';
+import * as path from 'path';
+import * as tar from 'tar-stream';
+import * as through from 'through';
 
-// Type-less imports
-const tar = require('tar-stream')
-const duplexify = require('duplexify')
-// Following types are available, but do not work...
-const es = require('event-stream')
-const JSONStream = require('JSONStream')
+import duplexify = require('duplexify');
 
 // Import hook definitions
-import * as Plugin from './plugin'
-import * as Utils from './utils'
+import * as Plugin from './plugin';
+import * as Utils from './utils';
 
-Promise.promisifyAll(tar)
+Promise.promisifyAll(tar);
 
-export type ErrorHandler = (error: Error) => void
-const emptyHandler: ErrorHandler = () => {}
+export type ErrorHandler = (error: Error) => void;
+const emptyHandler: ErrorHandler = () => {};
 
 /**
  * This class is responsible for interfacing with the docker daemon to
@@ -29,8 +27,8 @@ const emptyHandler: ErrorHandler = () => {}
  */
 export default class Builder {
 
-	private docker: Dockerode
-	private layers: string[]
+	private docker: Dockerode;
+	private layers: string[];
 
 	/**
 	 * Initialise the builder class, with a pointer to the docker socket.
@@ -40,14 +38,14 @@ export default class Builder {
 	 */
 	constructor(dockerOpts: Dockerode | Dockerode.DockerOptions) {
 
-		let dockerObj: Dockerode
+		let dockerObj: Dockerode;
 		if ( !(dockerOpts instanceof Dockerode)) {
-			dockerObj = new Dockerode(_.merge(dockerOpts, { Promise }))
+			dockerObj = new Dockerode(_.merge(dockerOpts, { Promise }));
 		} else {
-			dockerObj = dockerOpts
+			dockerObj = dockerOpts;
 		}
 
-		this.docker = dockerObj
+		this.docker = dockerObj;
 	}
 
 	/**
@@ -57,23 +55,23 @@ export default class Builder {
 	 * returned will be the output of the docker daemon build.
 	 *
 	 * @returns {NodeJS.ReadWriteStream}
-	 *	A promise which resolves with a bi-directional stream, which is connected
-	 *	to the docker daemon.
+	 *     A promise which resolves with a bi-directional stream, which is connected
+	 *     to the docker daemon.
 	 */
 	public createBuildStream(buildOpts: Object, hooks: Plugin.BuildHooks = {}, handler: ErrorHandler = emptyHandler): NodeJS.ReadWriteStream {
 
-		const self = this
+		const self = this;
 
-		this.layers = []
+		this.layers = [];
 
 		// Create a stream to be passed into the docker daemon
-		const inputStream = es.through()
+		const inputStream = through();
 
 		// Create a bi-directional stream
-		const dup = duplexify()
+		const dup = duplexify();
 
 		// Connect the input stream to the rw stream
-		dup.setWritable(inputStream)
+		dup.setWritable(inputStream);
 
 		Promise.resolve(this.docker.buildImage(inputStream, buildOpts))
 		.then((res: NodeJS.ReadWriteStream) => {
@@ -81,54 +79,54 @@ export default class Builder {
 			const outputStream = res
 			// parse the json objects
 			.pipe(JSONStream.parse())
-			// Don't use fat-arrow syntax here, to capture 'this' from es
-			.pipe(es.through(function(data: any): void {
+			// Don't use fat-arrow syntax here, to capture 'this' from through
+			.pipe(through(function(data: any): void {
 				if (data == null) {
-					return
+					return;
 				}
 				if (data.error) {
-					dup.destroy(new Error(data.error))
+					dup.destroy(new Error(data.error));
 				} else {
 					// Store image layers, so that they can be deleted by the caller
 					// if necessary
-					const sha = Utils.extractLayer(data.stream)
+					const sha = Utils.extractLayer(data.stream);
 					if (sha !== undefined) {
-						self.layers.push(sha)
+						self.layers.push(sha);
 					}
 
-					this.emit('data', data.stream)
+					this.emit('data', data.stream);
 				}
-			}))
+			}));
 
 			// Catch any errors the stream produces
 			outputStream.on('error', (err: Error) => {
-				const layers = self.layers.slice(0, -1)
-				self.callHook(hooks, 'buildFailure', handler, err, layers)
-			})
+				const layers = self.layers.slice(0, -1);
+				self.callHook(hooks, 'buildFailure', handler, err, layers);
+			});
 			dup.on('error', (err: Error) => {
-				const layers = self.layers.slice(0, -1)
-				self.callHook(hooks, 'buildFailure', handler, err, layers)
-			})
+				const layers = self.layers.slice(0, -1);
+				self.callHook(hooks, 'buildFailure', handler, err, layers);
+			});
 
 			// Setup the buildSuccess hook. This handler is not called on
 			// error so we can use it to propagate the success information
 			outputStream.on('end', () => {
-				this.callHook(hooks, 'buildSuccess', handler, _.last(this.layers), this.layers)
-			})
+				this.callHook(hooks, 'buildSuccess', handler, _.last(this.layers), this.layers);
+			});
 			// Connect the output of the docker daemon to the duplex stream
-			dup.setReadable(outputStream)
+			dup.setReadable(outputStream);
 
 		})
 		.catch((err: Error) => {
 			// Call the plugin's error handler
-			const layers = self.layers.slice(0, -1)
-			self.callHook(hooks, 'buildFailure', handler, err, layers)
-		})
+			const layers = self.layers.slice(0, -1);
+			self.callHook(hooks, 'buildFailure', handler, err, layers);
+		});
 
 		// Call the correct hook with the build stream
-		this.callHook(hooks, 'buildStream', handler, dup)
+		this.callHook(hooks, 'buildStream', handler, dup);
 		// and also return it
-		return dup
+		return dup;
 	}
 
 	/**
@@ -137,71 +135,71 @@ export default class Builder {
 	 * the output of the docker daemon.
 	 *
 	 * @param {string} dirPath
-	 *	The directory path to send to the docker daemon.
+	 *     The directory path to send to the docker daemon.
 	 *
 	 * @param {Object} buildOpts
-	 *	Build options to pass to the docker daemon.
+	 *     Build options to pass to the docker daemon.
 	 *
 	 * @returns {Promise<NodeJS.ReadableStream>}
-	 *	A stream which is connected to the output of the docker daemon
+	 *     A stream which is connected to the output of the docker daemon
 	 */
 	public buildDir(dirPath: string, buildOpts: Object, hooks: Plugin.BuildHooks, handler: ErrorHandler = emptyHandler): Promise<NodeJS.ReadableStream> {
-		const pack = tar.pack()
+		const pack = tar.pack();
 
 		return Utils.directoryToFiles(dirPath)
 			.map((file: string) => {
 				// Work out the relative path
-				const relPath = path.relative(path.resolve(dirPath), file)
-				return Promise.all([relPath, fs.stat(file), fs.readFile(file)])
+				const relPath = path.relative(path.resolve(dirPath), file);
+				return Promise.all([relPath, fs.stat(file), fs.readFile(file)]);
 			})
 			.map((fileInfo: [string, fs.Stats, Buffer]) => {
-				return pack.entryAsync({ name: fileInfo[0], size: fileInfo[1].size }, fileInfo[2])
+				return pack.entryAsync({ name: fileInfo[0], size: fileInfo[1].size }, fileInfo[2]);
 			})
 			.then(() => {
 				// Tell the tar stream we're done
-				pack.finalize()
+				pack.finalize();
 				// Create a build stream to send the data to
-				let stream = this.createBuildStream(buildOpts, hooks, handler)
+				const stream = this.createBuildStream(buildOpts, hooks, handler);
 				// Write the tar archive to the stream
-				pack.pipe(stream)
+				pack.pipe(stream);
 				// ...and return it for reading
-				return stream
-			})
+				return stream;
+			});
 	}
 
 	/**
 	 * Internal function to call a hook, if it has been registered for the build.
 	 *
 	 * @param {string} name
-	 *	The name of the hook to be called.
+	 *     The name of the hook to be called.
 	 *
 	 * @param {any[]} args
-	 *	The arguments to pass to the hook. The values will be unwrapped before
-	 *	being passed to the callback.
+	 *     The arguments to pass to the hook. The values will be unwrapped before
+	 *     being passed to the callback.
 	 *
-	 * @returns {any} The return value of the function, or nothing if the
-	 * function does not exist or does not provide a return value
+	 * @returns {any}
+	 *     The return value of the function, or nothing if the function does not exist or does not provide a return value
 	 */
 	private callHook(hooks: Plugin.BuildHooks, hook: Plugin.ValidHook, handler: ErrorHandler, ...args: any[]): Promise<any> {
 		if (hook in hooks) {
 			try {
 				// Spread the arguments onto the callback function
-				const fn = hooks[hook]
+				const fn = hooks[hook];
 				if (_.isFunction(fn)) {
-					const val = fn.apply(null, args)
+					const val = fn.apply(null, args);
 					// If we can add a catch handler
 					if(val != null && _.isFunction(val.catch) && _.isFunction(handler)) {
-						val.catch(handler)
+						val.catch(handler);
 					}
-					return val
+					return val;
 				}
 			} catch (e) {
 				if (_.isFunction(handler)) {
-					handler(e)
+					handler(e);
 				}
 			}
 		}
-		return Promise.resolve()
+		return Promise.resolve();
 	}
 
 }

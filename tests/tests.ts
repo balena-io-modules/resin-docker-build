@@ -1,14 +1,14 @@
-import * as mocha from 'mocha'
-import * as Dockerode from 'dockerode'
-import * as fs from 'fs'
+import * as Dockerode from 'dockerode';
+import * as fs from 'fs';
+import { describe } from 'mocha';
 
-import Builder from '../src/index'
-import { BuildHooks } from '../src/plugin'
+import Builder from '../src/index';
+import { BuildHooks } from '../src/plugin';
 
 // In general we don't want output, until we do.
 // call with `env DISPLAY_TEST_OUTPUT=1 npm test` to display output
-const dockerPath = process.env.DOCKER_PATH || '/var/run/docker.sock'
-const displayOutput = process.env.DISPLAY_TEST_OUTPUT === '1'
+const dockerPath = process.env.DOCKER_PATH || '/var/run/docker.sock';
+const displayOutput = process.env.DISPLAY_TEST_OUTPUT === '1';
 
 // Most of the time we just care that the correct hooks are being called
 // define them here to make it slightly easier
@@ -17,256 +17,255 @@ const displayOutput = process.env.DISPLAY_TEST_OUTPUT === '1'
 const getSuccessHooks = (done: Function): BuildHooks => {
 	const hooks: BuildHooks = {
 		buildSuccess: (id, layers) => {
-			done()
+			done();
 		},
 		buildFailure: (err) => {
 			if (displayOutput) {
-				console.log(err)
+				console.log(err);
 			}
-			done(err)
-		}
-	}
-	return hooks
-}
+			done(err);
+		},
+	};
+	return hooks;
+};
 // failureHooks: for when we want the failure hook to be called
 const getFailureHooks = (done: Function): BuildHooks => {
 	const hooks: BuildHooks = {
 		buildSuccess: (id, layers) => {
-			done(new Error('Expected error, got success'))
+			done(new Error('Expected error, got success'));
 		},
 		buildFailure: (err) => {
 			if (displayOutput) {
-				console.log(err)
+				console.log(err);
 			}
-			done()
-		}
-	}
-	return hooks
-}
+			done();
+		},
+	};
+	return hooks;
+};
 
 describe('Directory build', () => {
 	it('should build a directory image', function(done) {
 		// Give the build 60 seconds to finish
-		this.timeout(60000)
+		this.timeout(60000);
 		// Start a directory build
-		const builder = new Builder({ socketPath: dockerPath })
-		const hooks = getSuccessHooks(done)
+		const builder = new Builder({ socketPath: dockerPath });
+		const hooks = getSuccessHooks(done);
 
 		builder.buildDir('tests/test-files/directory-successful-build', {}, hooks)
 		.then((stream) => {
 			if (displayOutput) {
-				stream.pipe(process.stdout)
+				stream.pipe(process.stdout);
 			}
-		})
-	})
+		});
+	});
 
 	it('should fail to build a directory without Dockerfile', function(done) {
-		this.timeout(30000)
+		this.timeout(30000);
 
-		const builder = new Builder({ socketPath: dockerPath })
-		const hooks = getFailureHooks(done)
+		const builder = new Builder({ socketPath: dockerPath });
+		const hooks = getFailureHooks(done);
 
 		builder.buildDir('tests/test-files/directory-no-dockerfile', {}, hooks)
 		.then((stream) => {
 			if (displayOutput) {
-				stream.pipe(process.stdout)
+				stream.pipe(process.stdout);
 			}
-		})
+		});
 
-	})
+	});
 
 	it('should fail with invalid Dockerfile', function(done) {
-		this.timeout(30000)
+		this.timeout(30000);
 
-		const builder = new Builder({ socketPath: dockerPath })
-		const hooks = getFailureHooks(done)
+		const builder = new Builder({ socketPath: dockerPath });
+		const hooks = getFailureHooks(done);
 
 		builder.buildDir('tests/test-files/directory-invalid-dockerfile', {}, hooks)
 		.then((stream) => {
 			if (displayOutput) {
-				stream.pipe(process.stdout)
+				stream.pipe(process.stdout);
 			}
-		})
-	})
+		});
+	});
 
 	it('should pass stream to caller on successful build', function(done) {
 		// Shorter timeout for this test, as a timeout is the failure marker
-		this.timeout(10000)
+		this.timeout(10000);
 		const hooks: BuildHooks = {
 			buildStream: (stream) => {
 				if (displayOutput) {
-					stream.pipe(process.stdout)
+					stream.pipe(process.stdout);
 				}
-				done()
-			}
-		}
+				done();
+			},
+		};
 
-		const builder = new Builder({ socketPath: dockerPath })
-		builder.buildDir('tests/test-files/directory-successful-build', {}, hooks)
+		const builder = new Builder({ socketPath: dockerPath });
+		builder.buildDir('tests/test-files/directory-successful-build', {}, hooks);
 
-	})
+	});
 
 	it('should pass stream to caller on unsuccessful build', function(done) {
-		this.timeout(10000)
+		this.timeout(10000);
 		const hooks: BuildHooks = {
 			buildStream: (stream) => {
 				if (displayOutput) {
-					stream.pipe(process.stdout)
+					stream.pipe(process.stdout);
 				}
-				done()
-			}
-		}
+				done();
+			},
+		};
 
-		const builder = new Builder({ socketPath: dockerPath })
-		builder.buildDir('tests/test-files/directory-invalid-dockerfile', {}, hooks)
+		const builder = new Builder({ socketPath: dockerPath });
+		builder.buildDir('tests/test-files/directory-invalid-dockerfile', {}, hooks);
 
-	})
-})
+	});
+});
 
 describe('Tar stream build', () => {
 	it('should build a tar stream successfully', function(done) {
-		this.timeout(60000)
+		this.timeout(60000);
 
-		const tarStream = fs.createReadStream('tests/test-files/archives/success.tar')
+		const tarStream = fs.createReadStream('tests/test-files/archives/success.tar');
 
 		const hooks: BuildHooks = {
 			buildStream: (stream) => {
-				tarStream.pipe(stream)
+				tarStream.pipe(stream);
 				if (displayOutput) {
-					stream.pipe(process.stdout)
+					stream.pipe(process.stdout);
 				}
 			},
 			buildSuccess: (id, layers) => {
-				done()
+				done();
 			},
 			buildFailure: (err) => {
 				if (displayOutput) {
-					console.log(err)
+					console.log(err);
 				}
-				done(err)
-			}
-		}
+				done(err);
+			},
+		};
 
-		const builder = new Builder({ socketPath: dockerPath })
-		builder.createBuildStream({}, hooks)
-	})
+		const builder = new Builder({ socketPath: dockerPath });
+		builder.createBuildStream({}, hooks);
+	});
 
 	it('should fail to build invalid tar stream', function(done) {
-		this.timeout(60000)
+		this.timeout(60000);
 
-		const tarStream = fs.createReadStream('tests/test-files/archives/failure.tar')
+		const tarStream = fs.createReadStream('tests/test-files/archives/failure.tar');
 
 		const hooks: BuildHooks = {
 			buildStream: (stream) => {
-				tarStream.pipe(stream)
+				tarStream.pipe(stream);
 				if (displayOutput) {
-					stream.pipe(process.stdout)
+					stream.pipe(process.stdout);
 				}
 			},
 			buildSuccess: (id, layers) => {
-				done(new Error('Expected build failure, got success hook'))
+				done(new Error('Expected build failure, got success hook'));
 			},
 			buildFailure: (err) => {
 				if (displayOutput) {
-					console.log(err)
+					console.log(err);
 				}
-				done()
-			}
-		}
+				done();
+			},
+		};
 
-		const builder = new Builder({ socketPath: dockerPath })
-		builder.createBuildStream({}, hooks)
+		const builder = new Builder({ socketPath: dockerPath });
+		builder.createBuildStream({}, hooks);
 
-	})
+	});
 
 	it('should return successful layers upon failure', function() {
-		this.timeout(60000)
+		this.timeout(60000);
 		return new Promise((resolve, reject) => {
 
-			const tarStream = fs.createReadStream('tests/test-files/archives/failure-layers.tar')
+			const tarStream = fs.createReadStream('tests/test-files/archives/failure-layers.tar');
 
 			const hooks: BuildHooks = {
 				buildSuccess: () => {
-					reject(new Error('Success failed on failing build'))
+					reject(new Error('Success failed on failing build'));
 				},
 				buildFailure: (error, layers) => {
 					if (layers.length !== 2) {
-						reject(new Error('Incorrect amount of layers return in error handler'))
+						reject(new Error('Incorrect amount of layers return in error handler'));
 					}
 
-					resolve()
+					resolve();
 				},
 				buildStream: (stream) => {
-					tarStream.pipe(stream)
+					tarStream.pipe(stream);
 					if (displayOutput) {
-						stream.pipe(process.stdout)
+						stream.pipe(process.stdout);
 					}
-				}
-			}
+				},
+			};
 
-			const builder = new Builder({ socketPath: dockerPath })
-			builder.createBuildStream({}, hooks)
+			const builder = new Builder({ socketPath: dockerPath });
+			builder.createBuildStream({}, hooks);
 
-		})
+		});
 
-	})
+	});
 
 	it('should accept a pre-initialized dockerode object', function() {
-		this.timeout(60000)
+		this.timeout(60000);
 		return new Promise((resolve, reject) => {
 
-			const tarStream = fs.createReadStream('tests/test-files/archives/success.tar')
+			const tarStream = fs.createReadStream('tests/test-files/archives/success.tar');
 
 			const hooks: BuildHooks = {
 				buildSuccess: () => {
-					resolve()
+					resolve();
 				},
 				buildFailure: (e) => {
-					reject(e)
+					reject(e);
 				},
 				buildStream: (stream) => {
-					tarStream.pipe(stream)
+					tarStream.pipe(stream);
 
 					if (displayOutput) {
-						stream.pipe(process.stdout)
+						stream.pipe(process.stdout);
 					}
-				}
-			}
+				},
+			};
 
-			const docker = new Dockerode({ socketPath: dockerPath })
-			const builder = new Builder(docker)
-			builder.createBuildStream({}, hooks)
-		})
-	})
-})
+			const docker = new Dockerode({ socketPath: dockerPath });
+			const builder = new Builder(docker);
+			builder.createBuildStream({}, hooks);
+		});
+	});
+});
 
 describe('Error handler', () => {
 	it('should catch a synchronous error from a hook', function(done) {
 		const handler = () => {
-			done()
-		}
+			done();
+		};
 		const hooks: BuildHooks = {
 			buildStream: (stream) => {
-				throw new Error('Should be caught')
-			}
-		}
-		const builder = new Builder({ socketPath: dockerPath })
-		builder.createBuildStream({}, hooks, handler)
-	})
+				throw new Error('Should be caught');
+			},
+		};
+		const builder = new Builder({ socketPath: dockerPath });
+		builder.createBuildStream({}, hooks, handler);
+	});
 
-	it('should catch an asynchronous error from a hook', function (done) {
+	it('should catch an asynchronous error from a hook', function(done) {
 		const handler = () => {
-			done()
-		}
+			done();
+		};
 		const hooks: BuildHooks = {
 			buildStream: (stream) => {
 				return new Promise((resolve, reject) => {
-					reject(new Error('test'))
-				})
-			}
-		}
-		const builder = new Builder({ socketPath: dockerPath })
-		builder.createBuildStream({}, hooks, handler)
-	})
-})
-
+					reject(new Error('test'));
+				});
+			},
+		};
+		const builder = new Builder({ socketPath: dockerPath });
+		builder.createBuildStream({}, hooks, handler);
+	});
+});

@@ -1,15 +1,16 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "outDir": "./build/",
+    "outDir": "build",
     "sourceMap": true,
-    "types": ["node"],
+    "declaration": true,
     "target": "es6",
+    "typeRoots": ["typings", "node_modules/@types"],
     "noImplicitAny": true,
     "strictNullChecks": true
   },
   "include": [
-    "src/"
+    "src/*"
   ],
   "exclude": [
     "node_modules",

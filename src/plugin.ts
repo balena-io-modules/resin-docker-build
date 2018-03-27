@@ -2,10 +2,7 @@
  * ValidHooks: A list of valid hooks to enable the compiler to do
  * some safety checking
  */
-export type ValidHook = 'buildStream'
-                      | 'buildSuccess'
-                      | 'buildFailure'
-
+export type ValidHook = 'buildStream' | 'buildSuccess' | 'buildFailure'; 
 /**
  * BuildHooks
  *
@@ -23,41 +20,41 @@ export interface BuildHooks {
 	 * a ReadableStream which is connected to the output of the docker daemon.
 	 *
 	 * @param {NodeJS.ReadWriteStream} stream
-	 *	A duplex stream which can be used to send and recieve data with the
-	 *	docker daemon.
+	 *     A duplex stream which can be used to send and recieve data with the
+	 *     docker daemon.
 	 *
 	 *
 	 * Example implementation:
 	 *
 	 * buildStream = (stream) => {
-	 *	stream.pipe(process.stdout)
+	 *     stream.pipe(process.stdout)
 	 * }
 	 *
 	 */
-	buildStream?: (stream: NodeJS.ReadWriteStream) => void
+	buildStream?: (stream: NodeJS.ReadWriteStream) => void;
 
 	/**
 	 * This hook will be called after a build has successfully finished.
 	 *
 	 * @param {string} imageId
-	 *	This parameter will be populated with the digest which points to the
-	 *	built image.
+	 *     This parameter will be populated with the digest which points to the
+	 *     built image.
 	 * @param {string[]} layers
-	 *	Intermediate layers used by the build, can be used for GC. The last
-	 *	id in the layers array is also the imageId, so care should be taken to
-	 *	not GC the built image.
+	 *     Intermediate layers used by the build, can be used for GC. The last
+	 *     id in the layers array is also the imageId, so care should be taken to
+	 *     not GC the built image.
 	 */
-	buildSuccess?: (imageId: string, layers: string[]) => void
+	buildSuccess?: (imageId: string, layers: string[]) => void;
 
 	/**
 	 * This hook will be called upon build failure, with the error that caused
 	 * the failure.
 	 *
 	 * @param {Error} error
-	 *	The error which caused the build failure
+	 *     The error which caused the build failure
 	 *
 	 * @param {string[]} layers
-	 *	The layer which were successful
+	 *     The layer which were successful
 	 */
-	buildFailure?: (error: Error, layers: string[]) => void
+	buildFailure?: (error: Error, layers: string[]) => void;
 }

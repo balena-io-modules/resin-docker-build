@@ -1,5 +1,5 @@
-import * as Promise from 'bluebird'
-import * as klaw from 'klaw'
+import * as Promise from 'bluebird';
+import * as klaw from 'klaw';
 
 /**
  * Given a docker 'arrow message' containing a sha representing
@@ -7,32 +7,32 @@ import * as klaw from 'klaw'
  * an arrow message, undefined will be returned.
  *
  * @param {string} message
- *	The build message to parse
+ *     The build message to parse
  * @returns {string}
- *	Either the sha string, or undefined
+ *     Either the sha string, or undefined
  */
 export const extractLayer = (message: string): string | undefined => {
-	const extract = extractArrowMessage(message)
+	const extract = extractArrowMessage(message);
 	if (extract !== undefined) {
-		const shaRegex = /([a-f0-9]{12}[a-f0-9]*)/g
-		const match = shaRegex.exec(extract)
+		const shaRegex = /([a-f0-9]{12}[a-f0-9]*)/g;
+		const match = shaRegex.exec(extract);
 		if (match) {
-			return match[1]
+			return match[1];
 		}
 	}
 
-	return
-}
+	return;
+};
 
 const extractArrowMessage = (message: string): string | undefined => {
-	const arrowTest = /^\s*-+>\s*(.+)/
-	const match = arrowTest.exec(message)
+	const arrowTest = /^\s*-+>\s*(.+)/;
+	const match = arrowTest.exec(message);
 	if (match) {
-		return match[1]
+		return match[1];
 	} else {
-		return
+		return;
 	}
-}
+};
 
 /**
  * Go through an entire directory, splitting the entries out
@@ -40,18 +40,18 @@ const extractArrowMessage = (message: string): string | undefined => {
  */
 export const directoryToFiles = (dirPath: string): Promise<string[]> => {
 	return new Promise<string[]>((resolve, reject) => {
-		const files: string[] = []
+		const files: string[] = [];
 
 		// Walk the directory
 		klaw(dirPath)
 		.on('data', (item: klaw.Item) => {
 			if (!item.stats.isDirectory()) {
-				files.push(item.path)
+				files.push(item.path);
 			}
 		})
 		.on('end', () => {
-			resolve(files)
+			resolve(files);
 		})
-		.on('error', reject)
-	})
-}
+		.on('error', reject);
+	});
+};
