@@ -6,10 +6,11 @@
   "types": "build/index.d.ts",
   "scripts": {
     "clean": "rm -rf build",
-    "build": "npm run clean && gulp",
-    "test": "gulp test",
+    "build": "npm run clean && tsc --project tsconfig.publish.json",
+    "build:test": "npm run clean && tsc --project .",
+    "test": "npm run build:test && mocha build/test/test.js",
     "prepublish": "require-npm4-to-publish",
-    "prepublishOnly": "npm run build && npm test"
+    "prepublishOnly": "npm test && npm run build"
   },
   "author": "Cameron Diver <cameron@resin.io>",
   "license": "Apache-2.0",

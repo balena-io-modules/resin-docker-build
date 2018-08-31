@@ -1,3 +1,4 @@
+import * as Bluebird from 'bluebird'
 import * as mocha from 'mocha'
 import * as Dockerode from 'dockerode'
 import * as fs from 'fs'
@@ -52,7 +53,7 @@ describe('Directory build', () => {
 		const builder = new Builder({ socketPath: dockerPath })
 		const hooks = getSuccessHooks(done)
 
-		builder.buildDir('tests/test-files/directory-successful-build', {}, hooks)
+		builder.buildDir('test/test-files/directory-successful-build', {}, hooks)
 		.then((stream) => {
 			if (displayOutput) {
 				stream.pipe(process.stdout)
@@ -66,7 +67,7 @@ describe('Directory build', () => {
 		const builder = new Builder({ socketPath: dockerPath })
 		const hooks = getFailureHooks(done)
 
-		builder.buildDir('tests/test-files/directory-no-dockerfile', {}, hooks)
+		builder.buildDir('test/test-files/directory-no-dockerfile', {}, hooks)
 		.then((stream) => {
 			if (displayOutput) {
 				stream.pipe(process.stdout)
@@ -81,7 +82,7 @@ describe('Directory build', () => {
 		const builder = new Builder({ socketPath: dockerPath })
 		const hooks = getFailureHooks(done)
 
-		builder.buildDir('tests/test-files/directory-invalid-dockerfile', {}, hooks)
+		builder.buildDir('test/test-files/directory-invalid-dockerfile', {}, hooks)
 		.then((stream) => {
 			if (displayOutput) {
 				stream.pipe(process.stdout)
@@ -102,7 +103,7 @@ describe('Directory build', () => {
 		}
 
 		const builder = new Builder({ socketPath: dockerPath })
-		builder.buildDir('tests/test-files/directory-successful-build', {}, hooks)
+		builder.buildDir('test/test-files/directory-successful-build', {}, hooks)
 
 	})
 
@@ -118,7 +119,7 @@ describe('Directory build', () => {
 		}
 
 		const builder = new Builder({ socketPath: dockerPath })
-		builder.buildDir('tests/test-files/directory-invalid-dockerfile', {}, hooks)
+		builder.buildDir('test/test-files/directory-invalid-dockerfile', {}, hooks)
 
 	})
 })
@@ -127,7 +128,7 @@ describe('Tar stream build', () => {
 	it('should build a tar stream successfully', function(done) {
 		this.timeout(60000)
 
-		const tarStream = fs.createReadStream('tests/test-files/archives/success.tar')
+		const tarStream = fs.createReadStream('test/test-files/archives/success.tar')
 
 		const hooks: BuildHooks = {
 			buildStream: (stream) => {
@@ -154,7 +155,7 @@ describe('Tar stream build', () => {
 	it('should fail to build invalid tar stream', function(done) {
 		this.timeout(60000)
 
-		const tarStream = fs.createReadStream('tests/test-files/archives/failure.tar')
+		const tarStream = fs.createReadStream('test/test-files/archives/failure.tar')
 
 		const hooks: BuildHooks = {
 			buildStream: (stream) => {
@@ -181,9 +182,9 @@ describe('Tar stream build', () => {
 
 	it('should return successful layers upon failure', function() {
 		this.timeout(60000)
-		return new Promise((resolve, reject) => {
+		return new Bluebird((resolve, reject) => {
 
-			const tarStream = fs.createReadStream('tests/test-files/archives/failure-layers.tar')
+			const tarStream = fs.createReadStream('test/test-files/archives/failure-layers.tar')
 
 			const hooks: BuildHooks = {
 				buildSuccess: () => {
@@ -215,7 +216,7 @@ describe('Tar stream build', () => {
 		this.timeout(60000)
 		return new Promise((resolve, reject) => {
 
-			const tarStream = fs.createReadStream('tests/test-files/archives/success.tar')
+			const tarStream = fs.createReadStream('test/test-files/archives/success.tar')
 
 			const hooks: BuildHooks = {
 				buildSuccess: () => {
