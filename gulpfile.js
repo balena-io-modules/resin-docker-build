@@ -31,7 +31,7 @@ gulp.task('clean', () => {
 gulp.task('typescript', () => {
 	tsProject.src()
 	.pipe(sourcemaps.init())
-	.pipe(tsProject()).on('error', gutil.log)
+	.pipe(tsProject()).on('error', () => process.exit(1))
 	.pipe(sourcemaps.write('./', {
 		includeContent: true,
 		sourceRoot: OPTIONS.dirs.sources,
