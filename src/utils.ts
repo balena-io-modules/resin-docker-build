@@ -14,7 +14,7 @@ import * as klaw from 'klaw'
 export const extractLayer = (message: string): string | undefined => {
 	const extract = extractArrowMessage(message)
 	if (extract !== undefined) {
-		const shaRegex = /([a-f0-9]{12}[a-f0-9]*)/g
+		const shaRegex = /^([a-f0-9]{12}[a-f0-9]*)/g
 		const match = shaRegex.exec(extract)
 		if (match) {
 			return match[1]

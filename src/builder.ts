@@ -102,12 +102,10 @@ export default class Builder {
 
 			// Catch any errors the stream produces
 			outputStream.on('error', (err: Error) => {
-				const layers = self.layers.slice(0, -1)
-				self.callHook(hooks, 'buildFailure', handler, err, layers)
+				self.callHook(hooks, 'buildFailure', handler, err, self.layers)
 			})
 			dup.on('error', (err: Error) => {
-				const layers = self.layers.slice(0, -1)
-				self.callHook(hooks, 'buildFailure', handler, err, layers)
+				self.callHook(hooks, 'buildFailure', handler, err, self.layers)
 			})
 
 			// Setup the buildSuccess hook. This handler is not called on
@@ -121,8 +119,7 @@ export default class Builder {
 		})
 		.catch((err: Error) => {
 			// Call the plugin's error handler
-			const layers = self.layers.slice(0, -1)
-			self.callHook(hooks, 'buildFailure', handler, err, layers)
+			self.callHook(hooks, 'buildFailure', handler, err, self.layers)
 		})
 
 		// Call the correct hook with the build stream
