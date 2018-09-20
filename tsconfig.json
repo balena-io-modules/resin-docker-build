@@ -3,17 +3,13 @@
     "module": "commonjs",
     "outDir": "./build/",
     "sourceMap": true,
-    "types": ["node"],
     "target": "es6",
     "noImplicitAny": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "declaration": true
   },
-  "include": [
-    "src/"
-  ],
   "exclude": [
     "node_modules",
-    "build",
-    "tests"
+    "build"
   ]
 }

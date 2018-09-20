@@ -2,3 +2,4 @@ node_modules/
 
 src/**/*.js
 tests/**/*.js
+build

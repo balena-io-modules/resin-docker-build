@@ -1,14 +1,35 @@
-import * as mocha from 'mocha'
+import 'mocha'
+import * as Bluebird from 'bluebird'
 import * as Dockerode from 'dockerode'
+import * as url from 'url';
 import * as fs from 'fs'
+import * as path from 'path'
 
 import Builder from '../src/index'
 import { BuildHooks } from '../src/plugin'
 
 // In general we don't want output, until we do.
 // call with `env DISPLAY_TEST_OUTPUT=1 npm test` to display output
-const dockerPath = process.env.DOCKER_PATH || '/var/run/docker.sock'
 const displayOutput = process.env.DISPLAY_TEST_OUTPUT === '1'
+
+let dockerOpts: Dockerode.DockerOptions;
+if (process.env.CIRCLECI != null) {
+
+	const certs = ['ca.pem', 'cert.pem', 'key.pem'].map((f) => path.join(process.env.DOCKER_CERT_PATH!, f));
+	const [ca, cert, key ] = certs.map((c) => fs.readFileSync(c));
+	let parsed = url.parse(process.env.DOCKER_HOST!);
+
+	dockerOpts = {
+		host: 'https://' + parsed.hostname,
+		port: parsed.port,
+		ca,
+		cert,
+		key,
+		Promise: Bluebird as any,
+	};
+} else {
+	dockerOpts = { socketPath: '/var/run/docker.sock', Promise: Bluebird as any };
+}
 
 // Most of the time we just care that the correct hooks are being called
 // define them here to make it slightly easier
@@ -49,10 +70,10 @@ describe('Directory build', () => {
 		// Give the build 60 seconds to finish
 		this.timeout(60000)
 		// Start a directory build
-		const builder = new Builder({ socketPath: dockerPath })
+		const builder = new Builder(dockerOpts)
 		const hooks = getSuccessHooks(done)
 
-		builder.buildDir('tests/test-files/directory-successful-build', {}, hooks)
+		builder.buildDir('test/test-files/directory-successful-build', {}, hooks)
 		.then((stream) => {
 			if (displayOutput) {
 				stream.pipe(process.stdout)
@@ -63,10 +84,10 @@ describe('Directory build', () => {
 	it('should fail to build a directory without Dockerfile', function(done) {
 		this.timeout(30000)
 
-		const builder = new Builder({ socketPath: dockerPath })
+		const builder = new Builder(dockerOpts)
 		const hooks = getFailureHooks(done)
 
-		builder.buildDir('tests/test-files/directory-no-dockerfile', {}, hooks)
+		builder.buildDir('test/test-files/directory-no-dockerfile', {}, hooks)
 		.then((stream) => {
 			if (displayOutput) {
 				stream.pipe(process.stdout)
@@ -78,10 +99,10 @@ describe('Directory build', () => {
 	it('should fail with invalid Dockerfile', function(done) {
 		this.timeout(30000)
 
-		const builder = new Builder({ socketPath: dockerPath })
+		const builder = new Builder(dockerOpts)
 		const hooks = getFailureHooks(done)
 
-		builder.buildDir('tests/test-files/directory-invalid-dockerfile', {}, hooks)
+		builder.buildDir('test/test-files/directory-invalid-dockerfile', {}, hooks)
 		.then((stream) => {
 			if (displayOutput) {
 				stream.pipe(process.stdout)
@@ -101,8 +122,8 @@ describe('Directory build', () => {
 			}
 		}
 
-		const builder = new Builder({ socketPath: dockerPath })
-		builder.buildDir('tests/test-files/directory-successful-build', {}, hooks)
+		const builder = new Builder(dockerOpts)
+		builder.buildDir('test/test-files/directory-successful-build', {}, hooks)
 
 	})
 
@@ -117,8 +138,8 @@ describe('Directory build', () => {
 			}
 		}
 
-		const builder = new Builder({ socketPath: dockerPath })
-		builder.buildDir('tests/test-files/directory-invalid-dockerfile', {}, hooks)
+		const builder = new Builder(dockerOpts)
+		builder.buildDir('test/test-files/directory-invalid-dockerfile', {}, hooks)
 
 	})
 })
@@ -127,7 +148,7 @@ describe('Tar stream build', () => {
 	it('should build a tar stream successfully', function(done) {
 		this.timeout(60000)
 
-		const tarStream = fs.createReadStream('tests/test-files/archives/success.tar')
+		const tarStream = fs.createReadStream('test/test-files/archives/success.tar')
 
 		const hooks: BuildHooks = {
 			buildStream: (stream) => {
@@ -147,14 +168,14 @@ describe('Tar stream build', () => {
 			}
 		}
 
-		const builder = new Builder({ socketPath: dockerPath })
+		const builder = new Builder(dockerOpts)
 		builder.createBuildStream({}, hooks)
 	})
 
 	it('should fail to build invalid tar stream', function(done) {
 		this.timeout(60000)
 
-		const tarStream = fs.createReadStream('tests/test-files/archives/failure.tar')
+		const tarStream = fs.createReadStream('test/test-files/archives/failure.tar')
 
 		const hooks: BuildHooks = {
 			buildStream: (stream) => {
@@ -174,16 +195,16 @@ describe('Tar stream build', () => {
 			}
 		}
 
-		const builder = new Builder({ socketPath: dockerPath })
+		const builder = new Builder(dockerOpts)
 		builder.createBuildStream({}, hooks)
 
 	})
 
 	it('should return successful layers upon failure', function() {
 		this.timeout(60000)
-		return new Promise((resolve, reject) => {
+		return new Bluebird((resolve, reject) => {
 
-			const tarStream = fs.createReadStream('tests/test-files/archives/failure-layers.tar')
+			const tarStream = fs.createReadStream('test/test-files/archives/failure-layers.tar')
 
 			const hooks: BuildHooks = {
 				buildSuccess: () => {
@@ -204,7 +225,7 @@ describe('Tar stream build', () => {
 				}
 			}
 
-			const builder = new Builder({ socketPath: dockerPath })
+			const builder = new Builder(dockerOpts)
 			builder.createBuildStream({}, hooks)
 
 		})
@@ -215,7 +236,7 @@ describe('Tar stream build', () => {
 		this.timeout(60000)
 		return new Promise((resolve, reject) => {
 
-			const tarStream = fs.createReadStream('tests/test-files/archives/success.tar')
+			const tarStream = fs.createReadStream('test/test-files/archives/success.tar')
 
 			const hooks: BuildHooks = {
 				buildSuccess: () => {
@@ -233,7 +254,7 @@ describe('Tar stream build', () => {
 				}
 			}
 
-			const docker = new Dockerode({ socketPath: dockerPath })
+			const docker = new Dockerode(dockerOpts)
 			const builder = new Builder(docker)
 			builder.createBuildStream({}, hooks)
 		})
@@ -250,7 +271,7 @@ describe('Error handler', () => {
 				throw new Error('Should be caught')
 			}
 		}
-		const builder = new Builder({ socketPath: dockerPath })
+		const builder = new Builder(dockerOpts)
 		builder.createBuildStream({}, hooks, handler)
 	})
 
@@ -265,7 +286,7 @@ describe('Error handler', () => {
 				})
 			}
 		}
-		const builder = new Builder({ socketPath: dockerPath })
+		const builder = new Builder(dockerOpts)
 		builder.createBuildStream({}, hooks, handler)
 	})
 })

@@ -1,4 +1,4 @@
-import * as Promise from 'bluebird'
+import * as Bluebird from 'bluebird'
 import * as Dockerode from 'dockerode'
 import * as _ from 'lodash'
 import * as fs from 'mz/fs'
@@ -15,7 +15,7 @@ const JSONStream = require('JSONStream')
 import * as Plugin from './plugin'
 import * as Utils from './utils'
 
-Promise.promisifyAll(tar)
+Bluebird.promisifyAll(tar)
 
 export type ErrorHandler = (error: Error) => void
 const emptyHandler: ErrorHandler = () => {}
@@ -42,7 +42,7 @@ export default class Builder {
 
 		let dockerObj: Dockerode
 		if ( !(dockerOpts instanceof Dockerode)) {
-			dockerObj = new Dockerode(_.merge(dockerOpts, { Promise }))
+			dockerObj = new Dockerode(_.merge(dockerOpts, { Bluebird }))
 		} else {
 			dockerObj = dockerOpts
 		}
@@ -75,7 +75,7 @@ export default class Builder {
 		// Connect the input stream to the rw stream
 		dup.setWritable(inputStream)
 
-		Promise.resolve(this.docker.buildImage(inputStream, buildOpts))
+		Bluebird.resolve(this.docker.buildImage(inputStream, buildOpts))
 		.then((res: NodeJS.ReadWriteStream) => {
 
 			const outputStream = res
@@ -102,12 +102,10 @@ export default class Builder {
 
 			// Catch any errors the stream produces
 			outputStream.on('error', (err: Error) => {
-				const layers = self.layers.slice(0, -1)
-				self.callHook(hooks, 'buildFailure', handler, err, layers)
+				self.callHook(hooks, 'buildFailure', handler, err, self.layers)
 			})
 			dup.on('error', (err: Error) => {
-				const layers = self.layers.slice(0, -1)
-				self.callHook(hooks, 'buildFailure', handler, err, layers)
+				self.callHook(hooks, 'buildFailure', handler, err, self.layers)
 			})
 
 			// Setup the buildSuccess hook. This handler is not called on
@@ -121,8 +119,7 @@ export default class Builder {
 		})
 		.catch((err: Error) => {
 			// Call the plugin's error handler
-			const layers = self.layers.slice(0, -1)
-			self.callHook(hooks, 'buildFailure', handler, err, layers)
+			self.callHook(hooks, 'buildFailure', handler, err, self.layers)
 		})
 
 		// Call the correct hook with the build stream
@@ -142,17 +139,17 @@ export default class Builder {
 	 * @param {Object} buildOpts
 	 *	Build options to pass to the docker daemon.
 	 *
-	 * @returns {Promise<NodeJS.ReadableStream>}
+	 * @returns {Bluebird<NodeJS.ReadableStream>}
 	 *	A stream which is connected to the output of the docker daemon
 	 */
-	public buildDir(dirPath: string, buildOpts: Object, hooks: Plugin.BuildHooks, handler: ErrorHandler = emptyHandler): Promise<NodeJS.ReadableStream> {
+	public buildDir(dirPath: string, buildOpts: Object, hooks: Plugin.BuildHooks, handler: ErrorHandler = emptyHandler): Bluebird<NodeJS.ReadableStream> {
 		const pack = tar.pack()
 
 		return Utils.directoryToFiles(dirPath)
 			.map((file: string) => {
 				// Work out the relative path
 				const relPath = path.relative(path.resolve(dirPath), file)
-				return Promise.all([relPath, fs.stat(file), fs.readFile(file)])
+				return Bluebird.all([relPath, fs.stat(file), fs.readFile(file)])
 			})
 			.map((fileInfo: [string, fs.Stats, Buffer]) => {
 				return pack.entryAsync({ name: fileInfo[0], size: fileInfo[1].size }, fileInfo[2])
@@ -182,7 +179,7 @@ export default class Builder {
 	 * @returns {any} The return value of the function, or nothing if the
 	 * function does not exist or does not provide a return value
 	 */
-	private callHook(hooks: Plugin.BuildHooks, hook: Plugin.ValidHook, handler: ErrorHandler, ...args: any[]): Promise<any> {
+	private callHook(hooks: Plugin.BuildHooks, hook: Plugin.ValidHook, handler: ErrorHandler, ...args: any[]): Bluebird<any> {
 		if (hook in hooks) {
 			try {
 				// Spread the arguments onto the callback function
@@ -201,7 +198,7 @@ export default class Builder {
 				}
 			}
 		}
-		return Promise.resolve()
+		return Bluebird.resolve()
 	}
 
 }

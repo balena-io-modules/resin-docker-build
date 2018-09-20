@@ -1,1 +1,0 @@
-{"version":3,"sources":["../src/index.ts"],"names":[],"mappings":";;AAAA,uCAA+B;AAK9B,kBALM,iBAAO,CAKN;AAFR,kBAAe,iBAAO,CAAA","file":"index.js","sourcesContent":["import Builder from './builder'\nimport { BuildHooks } from './plugin'\n\nexport default Builder\nexport {\n\tBuilder,\n\tBuildHooks\n}\n"],"sourceRoot":"src"}
