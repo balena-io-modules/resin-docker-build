@@ -1,3 +1,20 @@
+/**
+ * @license
+ * Copyright 2018 Balena Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import * as Bluebird from 'bluebird'
 import * as Dockerode from 'dockerode'
 import * as _ from 'lodash'
@@ -78,6 +95,7 @@ export default class Builder {
 		Bluebird.resolve(this.docker.buildImage(inputStream, buildOpts))
 		.then((res: NodeJS.ReadWriteStream) => {
 
+			let errored = false
 			const outputStream = res
 			// parse the json objects
 			.pipe(JSONStream.parse())
@@ -87,6 +105,7 @@ export default class Builder {
 					return
 				}
 				if (data.error) {
+					errored = true
 					dup.destroy(new Error(data.error))
 				} else {
 					// Store image layers, so that they can be deleted by the caller
@@ -102,16 +121,20 @@ export default class Builder {
 
 			// Catch any errors the stream produces
 			outputStream.on('error', (err: Error) => {
+				errored = true
 				self.callHook(hooks, 'buildFailure', handler, err, self.layers)
 			})
 			dup.on('error', (err: Error) => {
+				errored = true
 				self.callHook(hooks, 'buildFailure', handler, err, self.layers)
 			})
 
 			// Setup the buildSuccess hook. This handler is not called on
 			// error so we can use it to propagate the success information
 			outputStream.on('end', () => {
-				this.callHook(hooks, 'buildSuccess', handler, _.last(this.layers), this.layers)
+				if (!errored) {
+					this.callHook(hooks, 'buildSuccess', handler, _.last(this.layers), this.layers)
+				}
 			})
 			// Connect the output of the docker daemon to the duplex stream
 			dup.setReadable(outputStream)
