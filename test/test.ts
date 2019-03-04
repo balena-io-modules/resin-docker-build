@@ -30,6 +30,7 @@ if (process.env.CIRCLECI != null) {
 } else {
 	dockerOpts = { socketPath: '/var/run/docker.sock', Promise: Bluebird as any };
 }
+const docker = new Dockerode(dockerOpts);
 
 // Most of the time we just care that the correct hooks are being called
 // define them here to make it slightly easier
@@ -70,7 +71,7 @@ describe('Directory build', () => {
 		// Give the build 60 seconds to finish
 		this.timeout(60000)
 		// Start a directory build
-		const builder = new Builder(dockerOpts)
+		const builder = Builder.fromDockerode(docker);
 		const hooks = getSuccessHooks(done)
 
 		builder.buildDir('test/test-files/directory-successful-build', {}, hooks)
@@ -84,7 +85,7 @@ describe('Directory build', () => {
 	it('should fail to build a directory without Dockerfile', function(done) {
 		this.timeout(30000)
 
-		const builder = new Builder(dockerOpts)
+		const builder = Builder.fromDockerode(docker);
 		const hooks = getFailureHooks(done)
 
 		builder.buildDir('test/test-files/directory-no-dockerfile', {}, hooks)
@@ -99,7 +100,7 @@ describe('Directory build', () => {
 	it('should fail with invalid Dockerfile', function(done) {
 		this.timeout(30000)
 
-		const builder = new Builder(dockerOpts)
+		const builder = Builder.fromDockerode(docker);
 		const hooks = getFailureHooks(done)
 
 		builder.buildDir('test/test-files/directory-invalid-dockerfile', {}, hooks)
@@ -122,7 +123,7 @@ describe('Directory build', () => {
 			}
 		}
 
-		const builder = new Builder(dockerOpts)
+		const builder = Builder.fromDockerode(docker);
 		builder.buildDir('test/test-files/directory-successful-build', {}, hooks)
 
 	})
@@ -138,7 +139,7 @@ describe('Directory build', () => {
 			}
 		}
 
-		const builder = new Builder(dockerOpts)
+		const builder = Builder.fromDockerode(docker);
 		builder.buildDir('test/test-files/directory-invalid-dockerfile', {}, hooks)
 
 	})
@@ -168,7 +169,7 @@ describe('Tar stream build', () => {
 			}
 		}
 
-		const builder = new Builder(dockerOpts)
+		const builder = Builder.fromDockerode(docker);
 		builder.createBuildStream({}, hooks)
 	})
 
@@ -195,7 +196,7 @@ describe('Tar stream build', () => {
 			}
 		}
 
-		const builder = new Builder(dockerOpts)
+		const builder = Builder.fromDockerode(docker);
 		builder.createBuildStream({}, hooks)
 
 	})
@@ -225,40 +226,13 @@ describe('Tar stream build', () => {
 				}
 			}
 
-			const builder = new Builder(dockerOpts)
+			const builder = Builder.fromDockerode(docker);
 			builder.createBuildStream({}, hooks)
 
 		})
 
 	})
 
-	it('should accept a pre-initialized dockerode object', function() {
-		this.timeout(60000)
-		return new Promise((resolve, reject) => {
-
-			const tarStream = fs.createReadStream('test/test-files/archives/success.tar')
-
-			const hooks: BuildHooks = {
-				buildSuccess: () => {
-					resolve()
-				},
-				buildFailure: (e) => {
-					reject(e)
-				},
-				buildStream: (stream) => {
-					tarStream.pipe(stream)
-
-					if (displayOutput) {
-						stream.pipe(process.stdout)
-					}
-				}
-			}
-
-			const docker = new Dockerode(dockerOpts)
-			const builder = new Builder(docker)
-			builder.createBuildStream({}, hooks)
-		})
-	})
 })
 
 describe('Error handler', () => {
@@ -271,7 +245,7 @@ describe('Error handler', () => {
 				throw new Error('Should be caught')
 			}
 		}
-		const builder = new Builder(dockerOpts)
+		const builder = Builder.fromDockerode(docker)
 		builder.createBuildStream({}, hooks, handler)
 	})
 
@@ -286,7 +260,7 @@ describe('Error handler', () => {
 				})
 			}
 		}
-		const builder = new Builder(dockerOpts)
+		const builder = Builder.fromDockerode(docker);
 		builder.createBuildStream({}, hooks, handler)
 	})
 })

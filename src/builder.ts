@@ -49,22 +49,16 @@ export default class Builder {
 	private docker: Dockerode
 	private layers: string[]
 
-	/**
-	 * Initialise the builder class, with a pointer to the docker socket.
-	 *
-	 * Example:
-	 * new Builder({ socketPath: '/var/run/docker.sock' })
-	 */
-	constructor(dockerOpts: Dockerode | Dockerode.DockerOptions) {
+	private constructor(docker: Dockerode) {
+		this.docker = docker
+	}
 
-		let dockerObj: Dockerode
-		if ( !(dockerOpts instanceof Dockerode)) {
-			dockerObj = new Dockerode(_.merge(dockerOpts, { Bluebird }))
-		} else {
-			dockerObj = dockerOpts
-		}
-
-		this.docker = dockerObj
+	public static fromDockerode(docker: Dockerode) {
+		return new Builder(docker);
+	}
+	
+	public static fromDockerOpts(dockerOpts: Dockerode.DockerOptions) {
+		return new Builder(new Dockerode(_.merge(dockerOpts, { Promise: Bluebird })));
 	}
 
 	/**
