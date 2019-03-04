@@ -23,7 +23,7 @@ import {
 	sampleDaemonStreamGenerator,
 } from './test-files/sample_daemon_output';
 
-const assert = require('assert').strict;
+const { assert } = require('chai');
 
 /**
  * This test asserts that the createBuildStream() method writes the expected
