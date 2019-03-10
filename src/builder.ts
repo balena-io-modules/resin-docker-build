@@ -23,7 +23,7 @@ import * as JSONStream from 'JSONStream';
 import * as _ from 'lodash';
 import * as fs from 'mz/fs';
 import * as path from 'path';
-import { Duplex } from 'stream';
+import { Duplex, Readable } from 'stream';
 import * as tar from 'tar-stream';
 
 // Import hook definitions
@@ -42,7 +42,6 @@ const emptyHandler: ErrorHandler = () => undefined;
  */
 export default class Builder {
 	private docker: Dockerode;
-	private layers: string[];
 
 	private constructor(docker: Dockerode) {
 		this.docker = docker;
@@ -71,8 +70,7 @@ export default class Builder {
 		hooks: Plugin.BuildHooks = {},
 		handler: ErrorHandler = emptyHandler,
 	): NodeJS.ReadWriteStream {
-		const self = this;
-		this.layers = [];
+		const layers: string[] = [];
 
 		// Create a stream to be passed into the docker daemon
 		const inputStream = es.through<Duplex>();
@@ -83,68 +81,63 @@ export default class Builder {
 		// Connect the input stream to the rw stream
 		dup.setWritable(inputStream);
 
-		Bluebird.resolve(this.docker.buildImage(inputStream, buildOpts))
-			.then((res: NodeJS.ReadWriteStream) => {
-				let errored = false;
-				const outputStream = res
-					// parse the json objects
-					.pipe(JSONStream.parse())
-					// Don't use fat-arrow syntax here, to capture 'this' from es
-					.pipe(
-						es.through<Duplex>(function(data: any): void {
-							if (data == null) {
-								return;
-							}
-							if (data.error) {
-								errored = true;
-								dup.destroy(new Error(data.error));
-							} else {
-								// Store image layers, so that they can be deleted by the caller
-								// if necessary
-								const sha = Utils.extractLayer(data.stream);
-								if (sha !== undefined) {
-									self.layers.push(sha);
-								}
+		let streamError: Error;
+		const failBuild = _.once((err: Error) => {
+			streamError = err;
+			dup.destroy(err);
+			return this.callHook(hooks, 'buildFailure', handler, err, layers);
+		});
 
-								this.emit('data', data.stream);
-							}
-						}),
-					);
+		inputStream.on('error', failBuild);
+		dup.on('error', failBuild);
 
-				// Catch any errors the stream produces
-				outputStream.on('error', (err: Error) => {
-					errored = true;
-					self.callHook(hooks, 'buildFailure', handler, err, self.layers);
+		const buildPromise = Bluebird.try(() =>
+			this.docker.buildImage(inputStream, buildOpts),
+		).then((daemonStream: NodeJS.ReadStream) => {
+			return new Bluebird((resolve, reject) => {
+				const outputStream = getDockerDaemonBuildOutputParserStream(
+					daemonStream,
+					layers,
+					reject,
+				);
+				outputStream.on('error', (error: Error) => {
+					daemonStream.unpipe();
+					reject(error);
 				});
-				dup.on('error', (err: Error) => {
-					errored = true;
-					self.callHook(hooks, 'buildFailure', handler, err, self.layers);
-				});
-
-				// Setup the buildSuccess hook. This handler is not called on
-				// error so we can use it to propagate the success information
-				outputStream.on('end', () => {
-					if (!errored) {
-						this.callHook(
-							hooks,
-							'buildSuccess',
-							handler,
-							_.last(this.layers),
-							this.layers,
-						);
-					}
-				});
+				outputStream.on('end', () =>
+					// The 'end' event was observed to be emitted under error
+					// conditions, hence the test for streamError.
+					streamError ? reject(streamError) : resolve(),
+				);
 				// Connect the output of the docker daemon to the duplex stream
 				dup.setReadable(outputStream);
-			})
-			.catch((err: Error) => {
-				// Call the plugin's error handler
-				self.callHook(hooks, 'buildFailure', handler, err, self.layers);
 			});
+		}); // no .catch() here, but rejection is captured by Bluebird.all() below
 
-		// Call the correct hook with the build stream
-		this.callHook(hooks, 'buildStream', handler, dup);
-		// and also return it
+		// It is helpful for the following promises to run in parallel because
+		// buildPromise may reject sooner than the buildStream hook completes
+		// (in which case the stream is unpipe'd and destroy'ed), and yet the
+		// buildStream hook must be called in order for buildPromise to ever
+		// resolve (as the hook call consumes the `dup` stream).
+		Bluebird.all([
+			buildPromise,
+			// Call the buildStream handler with the docker daemon stream
+			this.callHook(hooks, 'buildStream', handler, dup),
+		])
+			.then(() => {
+				if (!streamError) {
+					// Build successful: call buildSuccess handler
+					return this.callHook(
+						hooks,
+						'buildSuccess',
+						handler,
+						_.last(layers),
+						layers,
+					);
+				}
+			})
+			.catch(failBuild);
+
 		return dup;
 	}
 
@@ -208,24 +201,58 @@ export default class Builder {
 		handler: ErrorHandler,
 		...args: any[]
 	): Bluebird<any> {
-		if (hook in hooks) {
-			try {
+		return Bluebird.try(() => {
+			const fn = hooks[hook];
+			if (_.isFunction(fn)) {
 				// Spread the arguments onto the callback function
-				const fn = hooks[hook];
-				if (_.isFunction(fn)) {
-					const val = fn.apply(null, args);
-					// If we can add a catch handler
-					if (val != null && _.isFunction(val.catch) && _.isFunction(handler)) {
-						val.catch(handler);
-					}
-					return val;
-				}
-			} catch (e) {
-				if (_.isFunction(handler)) {
-					handler(e);
-				}
+				return fn.apply(null, args);
 			}
-		}
-		return Bluebird.resolve();
+		}).tapCatch((error: Error) => {
+			if (_.isFunction(handler)) {
+				handler(error);
+			}
+		});
 	}
+}
+
+/**
+ * Return an event stream capable of parsing a docker daemon's JSON object output.
+ * @param daemonStream: Docker daemon's output stream (dockerode.buildImage)
+ * @param layers Array to which to push parsed image layer sha strings
+ * @param onError Error callback
+ */
+function getDockerDaemonBuildOutputParserStream(
+	daemonStream: Readable,
+	layers: string[],
+	onError: (error: Error) => void,
+): Duplex {
+	return (
+		daemonStream
+			// parse the docker daemon's output json objects
+			.pipe(JSONStream.parse())
+			// Don't use fat-arrow syntax here, to capture 'this' from es
+			.pipe(
+				es.through<Duplex>(function(data: { stream: string; error: string }) {
+					if (data == null) {
+						return;
+					}
+					try {
+						if (data.error) {
+							throw new Error(data.error);
+						} else {
+							// Store image layers, so that they can be
+							// deleted by the caller if necessary
+							const sha = Utils.extractLayer(data.stream);
+							if (sha !== undefined) {
+								layers.push(sha);
+							}
+							this.emit('data', data.stream);
+						}
+					} catch (error) {
+						daemonStream.unpipe();
+						onError(error);
+					}
+				}),
+			)
+	);
 }

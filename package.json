@@ -49,6 +49,7 @@
   "devDependencies": {
     "@types/chai": "^3.4.35",
     "@types/mocha": "^2.2.39",
+    "@types/rewire": "^2.5.28",
     "chai": "^3.5.0",
     "dts-generator": "^2.1.0",
     "gulp": "^3.9.1",
@@ -61,6 +62,7 @@
     "mocha": "^3.2.0",
     "require-npm4-to-publish": "^1.0.0",
     "resin-lint": "^3.0.1",
+    "rewire": "^4.0.1",
     "ts-node": "^2.1.0",
     "typescript": "^3.2.1"
   }

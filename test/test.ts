@@ -19,11 +19,15 @@ import 'mocha';
 import * as Bluebird from 'bluebird';
 import * as Dockerode from 'dockerode';
 import * as fs from 'fs';
+import * as _ from 'lodash';
 import * as path from 'path';
 import * as url from 'url';
 
+import rewire = require('rewire');
+
 import Builder from '../src/index';
 import { BuildHooks } from '../src/plugin';
+import * as Utils from '../src/utils';
 
 // In general we don't want output, until we do.
 // call with `env DISPLAY_TEST_OUTPUT=1 npm test` to display output
@@ -234,12 +238,18 @@ describe('Tar stream build', () => {
 					reject(new Error('Success failed on failing build'));
 				},
 				buildFailure: (error, layers) => {
-					if (layers.length !== 2) {
+					const expected = 2;
+					if (layers.length !== expected) {
 						reject(
-							new Error('Incorrect amount of layers return in error handler'),
+							new Error(
+								`Incorrect number of layers (expected ${expected}, got ${
+									layers.length
+								})`,
+							),
 						);
+					} else {
+						resolve();
 					}
-					resolve();
 				},
 				buildStream: stream => {
 					tarStream.pipe(stream);
@@ -248,39 +258,129 @@ describe('Tar stream build', () => {
 					}
 				},
 			};
-
 			const builder = Builder.fromDockerode(docker);
 			builder.createBuildStream({}, hooks);
 		});
 	});
+
+	it('should fail to build if Utils.extractLayer throws an error', function() {
+		this.timeout(30000);
+		const mockUtils = {};
+		_.assign(mockUtils, Utils, {
+			extractLayer: () => {
+				throw new Error('spanner');
+			},
+		});
+		const builderMod = rewire('../src/builder');
+		return builderMod.__with__({
+			Utils: mockUtils,
+		})(
+			// run this function with the rewired module and then automatically
+			// undo the rewiring
+			() =>
+				new Bluebird((resolve, reject) => {
+					const tarStream = fs.createReadStream(
+						'test/test-files/archives/success.tar',
+					);
+
+					const hooks: BuildHooks = {
+						buildSuccess: () => {
+							reject(new Error('Incorrect success report on failing build'));
+						},
+						buildFailure: (error, layers) => {
+							const expected = 0;
+							if (layers.length !== expected) {
+								reject(
+									new Error(
+										`Incorrect number of layers (expected ${expected}, got ${
+											layers.length
+										})`,
+									),
+								);
+							} else {
+								resolve();
+							}
+						},
+						buildStream: stream => {
+							tarStream.pipe(stream);
+							if (displayOutput) {
+								stream.pipe(process.stdout);
+							}
+						},
+					};
+
+					const RewiredBuilder = builderMod.__get__('Builder');
+					const builder = RewiredBuilder.fromDockerode(docker);
+					builder.createBuildStream({}, hooks);
+				}),
+		);
+	});
 });
 
 describe('Error handler', () => {
-	it('should catch a synchronous error from a hook', function(done) {
-		const handler = () => {
-			done();
-		};
-		const hooks: BuildHooks = {
-			buildStream: stream => {
-				throw new Error('Should be caught');
-			},
-		};
-		const builder = Builder.fromDockerode(docker);
-		builder.createBuildStream({}, hooks, handler);
+	it('should catch a synchronous error from a hook', function() {
+		this.timeout(30000);
+
+		return new Bluebird((resolve, reject) => {
+			const hooks: BuildHooks = {
+				buildSuccess: () => {
+					reject(new Error('Incorrect success report on handler error'));
+				},
+				buildFailure: (error, layers) => {
+					const expected = 0;
+					if (layers.length !== expected) {
+						reject(
+							new Error(
+								`Incorrect number of layers (expected ${expected}, got ${
+									layers.length
+								})`,
+							),
+						);
+					} else {
+						resolve();
+					}
+				},
+				buildStream: stream => {
+					throw new Error(
+						'Synchronous buildStream error should have been caught',
+					);
+				},
+			};
+			const builder = Builder.fromDockerode(docker);
+			builder.createBuildStream({}, hooks);
+		});
 	});
 
-	it('should catch an asynchronous error from a hook', function(done) {
-		const handler = () => {
-			done();
-		};
-		const hooks: BuildHooks = {
-			buildStream: stream => {
-				return new Promise((resolve, reject) => {
-					reject(new Error('test'));
-				});
-			},
-		};
-		const builder = Builder.fromDockerode(docker);
-		builder.createBuildStream({}, hooks, handler);
+	it('should catch an asynchronous error from a hook', function() {
+		this.timeout(30000);
+
+		return new Bluebird((resolve, reject) => {
+			const hooks: BuildHooks = {
+				buildSuccess: () => {
+					reject(new Error('Incorrect success report on handler error'));
+				},
+				buildFailure: (error, layers) => {
+					const expected = 0;
+					if (layers.length !== expected) {
+						reject(
+							new Error(
+								`Incorrect number of layers (expected ${expected}, got ${
+									layers.length
+								})`,
+							),
+						);
+					} else {
+						resolve();
+					}
+				},
+				buildStream: stream => {
+					return Promise.reject(
+						new Error('Asynchronous buildStream error should have been caught'),
+					);
+				},
+			};
+			const builder = Builder.fromDockerode(docker);
+			builder.createBuildStream({}, hooks);
+		});
 	});
 });

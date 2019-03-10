@@ -15,13 +15,51 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
+import * as _ from 'lodash';
+import rewire = require('rewire');
 import { Readable, Stream, Writable } from 'stream';
 
-import Builder from '../src/index';
+import * as Utils from '../src/utils';
 import {
 	sampleDaemonOutputGenerator,
 	sampleDaemonStreamGenerator,
 } from './test-files/sample_daemon_output';
+
+/**
+ * Dockerode class mock (selected bits)
+ */
+class MockDockerode {
+	public buildImagePromise: Promise<void>;
+	public tarStreamMilliseconds: number;
+
+	/**
+	 * Mock of dockerode's buildImage() (of sorts - no network calls). This
+	 * function is synchronous and returns quickly (before the streams are
+	 * read/written), but it assigns a promise to this.buildImagePromise (public
+	 * member variable) that can be waited by test code. When the reading of
+	 * inputStream finishes (asynchronously), this.tarStreamMilliseconds is
+	 * assigned to with how long it took.
+	 * @param inputStream Mock tar stream - input to the docker daemon
+	 * @returns A mock of the docker daemon's output stream (a JSON stream)
+	 */
+	public buildImage(inputStream: Readable): Promise<Writable> {
+		const outputStream = new Stream.PassThrough();
+		this.buildImagePromise = new Promise((resolve, reject) => {
+			const startTime = Date.now();
+			outputStream.on('error', reject);
+			inputStream
+				.on('error', reject)
+				.on('end', () => {
+					this.tarStreamMilliseconds = Date.now() - startTime;
+					resolve(
+						eventLoopWriteIterable(outputStream, sampleDaemonOutputGenerator()),
+					);
+				})
+				.resume();
+		});
+		return Promise.resolve(outputStream);
+	}
+}
 
 /**
  * This test asserts that the createBuildStream() method writes the expected
@@ -38,17 +76,25 @@ import {
  *
  * As is, it takes under 50ms to run in a devenv VirtualBox VM on my laptop.
  */
-describe('createBuildStream performance', function() {
+describe('createBuildStream', function() {
 	this.timeout(5000);
+
+	const mockUtils = {};
+	_.assign(mockUtils, Utils, {
+		extractLayer: () => undefined,
+	});
+	const builderMod = rewire('../src/builder');
+	builderMod.__set__({
+		Dockerode: MockDockerode,
+		Utils: mockUtils,
+	});
+	const MockBuilder = builderMod.__get__('Builder');
 
 	it('should be fast', async () => {
 		let startTime: number;
-		const mockBuilder = new MockBuilder();
+		const mockBuilder = MockBuilder.fromDockerOpts({});
+		const buildStream = mockBuilder.createBuildStream({});
 		const streamer = sampleDaemonStreamGenerator();
-		const buildStream = Builder.prototype.createBuildStream.call(
-			mockBuilder,
-			{},
-		);
 		const buildStreamPromise = new Promise((resolve, reject) => {
 			buildStream
 				.on('error', reject)
@@ -144,55 +190,4 @@ async function mockTarStream(
 			}
 		})(),
 	);
-}
-
-/**
- * Dockerode class mock (selected bits)
- */
-class MockDockerode {
-	public buildImagePromise: Promise<void>;
-	public tarStreamMilliseconds: number;
-
-	/**
-	 * Mock of dockerode's buildImage() (of sorts - no network calls). This
-	 * function is synchronous and returns quickly (before the streams are
-	 * read/written), but it assigns a promise to this.buildImagePromise (public
-	 * member variable) that can be waited by test code. When the reading of
-	 * inputStream finishes (asynchronously), this.tarStreamMilliseconds is
-	 * assigned to with how long it took.
-	 * @param inputStream Mock tar stream - input to the docker daemon
-	 * @returns A mock of the docker daemon's output stream (a JSON stream)
-	 */
-	public buildImage(inputStream: Readable): Writable {
-		const outputStream = new Stream.PassThrough();
-		this.buildImagePromise = new Promise((resolve, reject) => {
-			const startTime = Date.now();
-			outputStream.on('error', reject);
-			inputStream
-				.on('error', reject)
-				.on('end', () => {
-					this.tarStreamMilliseconds = Date.now() - startTime;
-					resolve(
-						eventLoopWriteIterable(outputStream, sampleDaemonOutputGenerator()),
-					);
-				})
-				.resume();
-		});
-		return outputStream;
-	}
-}
-
-/**
- * Builder class mock (selected bits)
- */
-class MockBuilder {
-	public docker: MockDockerode;
-
-	constructor() {
-		this.docker = new MockDockerode();
-	}
-
-	private callHook() {
-		return;
-	}
 }
