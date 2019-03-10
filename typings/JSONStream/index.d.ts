@@ -14,8 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Builder from './builder';
-import { BuildHooks } from './plugin';
 
-export default Builder;
-export { Builder, BuildHooks };
+/**
+ * There is a `@types/jsonstream` package, but the version of the typescript
+ * compiler used by CircleCI makes a distinction between uppercase 'JSONStream'
+ * and lowercase 'jsonstream'.
+ *
+ * TODO: create a pull request for github.com/DefinitelyTyped/DefinitelyTyped
+ * for the uppercase 'JSONStream' style, which is the official capitalisation
+ * according to the project's website.
+ */
+declare module 'JSONStream' {
+	function parse(pattern?: any): NodeJS.ReadWriteStream;
+}

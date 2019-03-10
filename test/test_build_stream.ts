@@ -14,16 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { Stream, Readable, Writable, Duplex } from 'stream';
+import { assert } from 'chai';
+import { Readable, Stream, Writable } from 'stream';
 
 import Builder from '../src/index';
 import {
 	sampleDaemonOutputGenerator,
 	sampleDaemonStreamGenerator,
 } from './test-files/sample_daemon_output';
-
-const { assert } = require('chai');
 
 /**
  * This test asserts that the createBuildStream() method writes the expected
@@ -47,18 +45,22 @@ describe('createBuildStream performance', function() {
 		let startTime: number;
 		const mockBuilder = new MockBuilder();
 		const streamer = sampleDaemonStreamGenerator();
-		const buildStream = Builder.prototype.createBuildStream.call(mockBuilder, {});
+		const buildStream = Builder.prototype.createBuildStream.call(
+			mockBuilder,
+			{},
+		);
 		const buildStreamPromise = new Promise((resolve, reject) => {
 			buildStream
 				.on('error', reject)
 				.on('end', () => {
 					console.log(
 						`createBuildStream performance test: write time (tar stream): ${
-							mockBuilder.docker.tarStreamMilliseconds} milliseconds`,
+							mockBuilder.docker.tarStreamMilliseconds
+						} milliseconds`,
 					);
 					console.log(
-						`createBuildStream performance test: read time (JSON stream): ${
-							Date.now() - startTime} milliseconds`,
+						`createBuildStream performance test: read time (JSON stream): ${Date.now() -
+							startTime} milliseconds`,
 					);
 					resolve();
 				})
@@ -76,10 +78,7 @@ describe('createBuildStream performance', function() {
 
 		// Create a mock tar stream and pipe it to the builder (buildStream)
 		const tarStreamSizeMegaBytes = 1;
-		const tarStreamPromise = mockTarStream(
-			buildStream,
-			tarStreamSizeMegaBytes,
-		);
+		const tarStreamPromise = mockTarStream(buildStream, tarStreamSizeMegaBytes);
 
 		await Promise.all([
 			tarStreamPromise,
@@ -193,5 +192,7 @@ class MockBuilder {
 		this.docker = new MockDockerode();
 	}
 
-	private callHook() {}
+	private callHook() {
+		return;
+	}
 }

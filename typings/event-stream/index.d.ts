@@ -14,8 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Builder from './builder';
-import { BuildHooks } from './plugin';
 
-export default Builder;
-export { Builder, BuildHooks };
+import * as es from 'event-stream';
+import { Stream } from 'stream';
+
+/**
+ * Additional typing information that is merged with that available in the npm
+ * package `@types/event-stream`.
+ * TODO: create a pull request for github.com/DefinitelyTyped/DefinitelyTyped
+ */
+declare module 'event-stream' {
+	function through<T extends Stream>(
+		write?: (data: any) => void,
+		end?: () => void,
+	): T;
+}
