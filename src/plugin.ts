@@ -1,10 +1,25 @@
 /**
+ * @license
+ * Copyright 2019 Balena Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
  * ValidHooks: A list of valid hooks to enable the compiler to do
  * some safety checking
  */
-export type ValidHook = 'buildStream'
-                      | 'buildSuccess'
-                      | 'buildFailure'
+export type ValidHook = 'buildStream' | 'buildSuccess' | 'buildFailure';
 
 /**
  * BuildHooks
@@ -22,42 +37,34 @@ export interface BuildHooks {
 	 * This hook is called after a build is started, with `stream` being populated with
 	 * a ReadableStream which is connected to the output of the docker daemon.
 	 *
-	 * @param {NodeJS.ReadWriteStream} stream
-	 *	A duplex stream which can be used to send and recieve data with the
-	 *	docker daemon.
-	 *
+	 * @param stream A duplex stream that can be used to send and receive data
+	 * to/from the docker daemon.
 	 *
 	 * Example implementation:
 	 *
 	 * buildStream = (stream) => {
-	 *	stream.pipe(process.stdout)
+	 *     stream.pipe(process.stdout);
 	 * }
 	 *
 	 */
-	buildStream?: (stream: NodeJS.ReadWriteStream) => void
+	buildStream?: (stream: NodeJS.ReadWriteStream) => void;
 
 	/**
 	 * This hook will be called after a build has successfully finished.
 	 *
-	 * @param {string} imageId
-	 *	This parameter will be populated with the digest which points to the
-	 *	built image.
-	 * @param {string[]} layers
-	 *	Intermediate layers used by the build, can be used for GC. The last
-	 *	id in the layers array is also the imageId, so care should be taken to
-	 *	not GC the built image.
+	 * @param imageId Digest that points to the built image
+	 * @param layers Intermediate layers used by the build, can be used for GC.
+	 * The last id in the layers array is also the imageId, so care should be
+	 * taken to not GC the built image.
 	 */
-	buildSuccess?: (imageId: string, layers: string[]) => void
+	buildSuccess?: (imageId: string, layers: string[]) => void;
 
 	/**
 	 * This hook will be called upon build failure, with the error that caused
 	 * the failure.
 	 *
-	 * @param {Error} error
-	 *	The error which caused the build failure
-	 *
-	 * @param {string[]} layers
-	 *	The layer which were successful
+	 * @param error Error that caused the build failure
+	 * @param layers The layers that were successful
 	 */
-	buildFailure?: (error: Error, layers: string[]) => void
+	buildFailure?: (error: Error, layers: string[]) => void;
 }
