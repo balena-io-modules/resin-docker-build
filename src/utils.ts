@@ -17,6 +17,8 @@
 import * as Bluebird from 'bluebird';
 import * as klaw from 'klaw';
 
+import * as Plugin from './plugin';
+
 /**
  * Given a docker 'arrow message' containing a sha representing
  * a layer, extract the sha digest. If the string passed in is not
@@ -68,4 +70,25 @@ export const directoryToFiles = (dirPath: string): Bluebird<string[]> => {
 			})
 			.on('error', reject);
 	});
+};
+
+const fromTagPattern = /^(Step.+?\s*:\s*)?FROM\s+([\w-./]+)(:?([\w-./]+))?\s*(as\s+([\w-./]+))?/;
+
+export interface FromTagInfo extends Plugin.FromTagInfo {
+	alias?: string;
+}
+
+export const extractFromTag = (message: string): FromTagInfo | undefined => {
+	const match = fromTagPattern.exec(message);
+	if (!match) {
+		return undefined;
+	}
+	const res: FromTagInfo = {
+		repo: match[2],
+		tag: match[4] || 'latest',
+	};
+	if (match[6]) {
+		res.alias = match[6];
+	}
+	return res;
 };

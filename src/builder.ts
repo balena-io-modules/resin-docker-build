@@ -71,6 +71,7 @@ export default class Builder {
 		handler: ErrorHandler = emptyHandler,
 	): NodeJS.ReadWriteStream {
 		const layers: string[] = [];
+		const fromTags: Utils.FromTagInfo[] = [];
 
 		// Create a stream to be passed into the docker daemon
 		const inputStream = es.through<Duplex>();
@@ -85,7 +86,14 @@ export default class Builder {
 		const failBuild = _.once((err: Error) => {
 			streamError = err;
 			dup.destroy(err);
-			return this.callHook(hooks, 'buildFailure', handler, err, layers);
+			return this.callHook(
+				hooks,
+				'buildFailure',
+				handler,
+				err,
+				layers,
+				fromTags,
+			);
 		});
 
 		inputStream.on('error', failBuild);
@@ -98,6 +106,7 @@ export default class Builder {
 				const outputStream = getDockerDaemonBuildOutputParserStream(
 					daemonStream,
 					layers,
+					fromTags,
 					reject,
 				);
 				outputStream.on('error', (error: Error) => {
@@ -133,6 +142,7 @@ export default class Builder {
 						handler,
 						_.last(layers),
 						layers,
+						fromTags,
 					);
 				}
 			})
@@ -219,13 +229,16 @@ export default class Builder {
  * Return an event stream capable of parsing a docker daemon's JSON object output.
  * @param daemonStream: Docker daemon's output stream (dockerode.buildImage)
  * @param layers Array to which to push parsed image layer sha strings
+ * @param fromImageTags Array to which to push parsed FROM image tags info
  * @param onError Error callback
  */
 function getDockerDaemonBuildOutputParserStream(
 	daemonStream: Readable,
 	layers: string[],
+	fromImageTags: Utils.FromTagInfo[],
 	onError: (error: Error) => void,
 ): Duplex {
+	const fromAliases = new Set();
 	return (
 		daemonStream
 			// parse the docker daemon's output json objects
@@ -245,6 +258,15 @@ function getDockerDaemonBuildOutputParserStream(
 							const sha = Utils.extractLayer(data.stream);
 							if (sha !== undefined) {
 								layers.push(sha);
+							}
+							const fromTag = Utils.extractFromTag(data.stream);
+							if (fromTag !== undefined) {
+								if (!fromAliases.has(fromTag.repo)) {
+									fromImageTags.push(fromTag);
+								}
+								if (fromTag.alias) {
+									fromAliases.add(fromTag.alias);
+								}
 							}
 							this.emit('data', data.stream);
 						}
