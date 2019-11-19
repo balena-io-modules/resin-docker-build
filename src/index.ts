@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import Builder from './builder';
-import { BuildHooks } from './plugin';
 
+export { BuildHooks, FromTagInfo } from './plugin';
+export { Builder };
 export default Builder;
-export { Builder, BuildHooks };
