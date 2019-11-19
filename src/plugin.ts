@@ -21,6 +21,12 @@
  */
 export type ValidHook = 'buildStream' | 'buildSuccess' | 'buildFailure';
 
+/** FromTagInfo: Information about an image tag referred in the Dockerfile. */
+export interface FromTagInfo {
+	repo: string;
+	tag: string;
+}
+
 /**
  * BuildHooks
  *
@@ -56,8 +62,13 @@ export interface BuildHooks {
 	 * @param layers Intermediate layers used by the build, can be used for GC.
 	 * The last id in the layers array is also the imageId, so care should be
 	 * taken to not GC the built image.
+	 * @param fromTags image tags referred during the build
 	 */
-	buildSuccess?: (imageId: string, layers: string[]) => void;
+	buildSuccess?: (
+		imageId: string,
+		layers: string[],
+		fromTags: FromTagInfo[],
+	) => void;
 
 	/**
 	 * This hook will be called upon build failure, with the error that caused
@@ -66,5 +77,9 @@ export interface BuildHooks {
 	 * @param error Error that caused the build failure
 	 * @param layers The layers that were successful
 	 */
-	buildFailure?: (error: Error, layers: string[]) => void;
+	buildFailure?: (
+		error: Error,
+		layers: string[],
+		fromTags: FromTagInfo[],
+	) => void;
 }

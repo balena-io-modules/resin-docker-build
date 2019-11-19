@@ -105,6 +105,48 @@ describe('Directory build', () => {
 			});
 	});
 
+	it('should pass layers and FROM tags', function(done) {
+		this.timeout(60000);
+
+		const hooks: BuildHooks = {
+			buildSuccess: (id, layers, fromTags) => {
+				if (layers.length !== 4) {
+					done(new Error(`Expected 4 layers but got ${layers}`));
+					return;
+				}
+				const [from] = fromTags;
+				if (
+					fromTags.length !== 1 ||
+					from.repo !== 'debian' ||
+					from.tag !== 'jessie'
+				) {
+					done(
+						new Error(
+							`Expected info about FROM debian:jessie, but got ${fromTags}`,
+						),
+					);
+					return;
+				}
+				done();
+			},
+			buildFailure: err => {
+				if (displayOutput) {
+					console.log(err);
+				}
+				done(err);
+			},
+		};
+
+		const builder = Builder.fromDockerode(docker);
+		builder
+			.buildDir('test/test-files/directory-successful-build', {}, hooks)
+			.then(stream => {
+				if (displayOutput) {
+					stream.pipe(process.stdout);
+				}
+			});
+	});
+
 	it('should fail to build a directory without Dockerfile', function(done) {
 		this.timeout(30000);
 
