@@ -25,6 +25,11 @@
     "url": "https://github.com/resin-io/resin-docker-build/issues"
   },
   "homepage": "https://github.com/resin-io/resin-docker-build#readme",
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
   "dependencies": {
     "@types/bluebird": "3.5.20",
     "@types/dockerode": "2.5.5",
@@ -59,9 +64,11 @@
     "gulp-sourcemaps": "^2.4.1",
     "gulp-typescript": "^3.1.5",
     "gulp-util": "^3.0.8",
+    "husky": "^3.1.0",
+    "lint-staged": "^9.4.3",
     "mocha": "^3.2.0",
     "require-npm4-to-publish": "^1.0.0",
-    "resin-lint": "^3.0.1",
+    "resin-lint": "^3.1.1",
     "rewire": "^4.0.1",
     "ts-node": "^2.1.0",
     "typescript": "^3.2.1"
