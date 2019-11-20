@@ -284,9 +284,7 @@ describe('Tar stream build', () => {
 					if (layers.length !== expected) {
 						reject(
 							new Error(
-								`Incorrect number of layers (expected ${expected}, got ${
-									layers.length
-								})`,
+								`Incorrect number of layers (expected ${expected}, got ${layers.length})`,
 							),
 						);
 					} else {
@@ -334,9 +332,7 @@ describe('Tar stream build', () => {
 							if (layers.length !== expected) {
 								reject(
 									new Error(
-										`Incorrect number of layers (expected ${expected}, got ${
-											layers.length
-										})`,
+										`Incorrect number of layers (expected ${expected}, got ${layers.length})`,
 									),
 								);
 							} else {
@@ -373,9 +369,7 @@ describe('Error handler', () => {
 					if (layers.length !== expected) {
 						reject(
 							new Error(
-								`Incorrect number of layers (expected ${expected}, got ${
-									layers.length
-								})`,
+								`Incorrect number of layers (expected ${expected}, got ${layers.length})`,
 							),
 						);
 					} else {
@@ -406,9 +400,7 @@ describe('Error handler', () => {
 					if (layers.length !== expected) {
 						reject(
 							new Error(
-								`Incorrect number of layers (expected ${expected}, got ${
-									layers.length
-								})`,
+								`Incorrect number of layers (expected ${expected}, got ${layers.length})`,
 							),
 						);
 					} else {

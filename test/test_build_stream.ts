@@ -100,9 +100,7 @@ describe('createBuildStream', function() {
 				.on('error', reject)
 				.on('end', () => {
 					console.log(
-						`createBuildStream performance test: write time (tar stream): ${
-							mockBuilder.docker.tarStreamMilliseconds
-						} milliseconds`,
+						`createBuildStream performance test: write time (tar stream): ${mockBuilder.docker.tarStreamMilliseconds} milliseconds`,
 					);
 					console.log(
 						`createBuildStream performance test: read time (JSON stream): ${Date.now() -

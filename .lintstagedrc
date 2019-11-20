@@ -1,0 +1,10 @@
+{
+	"*.ts": [
+		"prettier --config ./node_modules/resin-lint/config/.prettierrc --write",
+		"resin-lint --typescript --no-prettier",
+		"git add"
+	],
+	"test/**/*.ts": [
+		"resin-lint --typescript --no-prettier --tests"
+	],
+}
