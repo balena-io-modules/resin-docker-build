@@ -31,16 +31,16 @@
     }
   },
   "dependencies": {
-    "@types/bluebird": "^3.5.29",
-    "@types/dockerode": "^2.5.23",
+    "@types/bluebird": "^3.5.30",
+    "@types/dockerode": "^2.5.24",
     "@types/duplexify": "^3.6.0",
     "@types/event-stream": "^3.3.34",
     "@types/jsonstream": "^0.8.30",
     "@types/klaw": "^1.3.5",
     "@types/lodash": "^4.14.149",
     "@types/mz": "0.0.32",
-    "@types/node": "^10.17.16",
-    "@types/tar-stream": "^1.6.1",
+    "@types/node": "^10.17.17",
+    "@types/tar-stream": "^2.1.0",
     "JSONStream": "^1.3.5",
     "bluebird": "^3.7.2",
     "dockerode": "^2.5.8",
@@ -49,7 +49,7 @@
     "klaw": "^1.3.1",
     "lodash": "^4.17.15",
     "mz": "^2.7.0",
-    "tar-stream": "^1.6.2"
+    "tar-stream": "^2.1.0"
   },
   "devDependencies": {
     "@types/chai": "^3.4.35",
@@ -65,12 +65,12 @@
     "gulp-typescript": "^3.1.5",
     "gulp-util": "^3.0.8",
     "husky": "^4.2.3",
-    "lint-staged": "^10.0.7",
+    "lint-staged": "^10.0.8",
     "mocha": "^3.2.0",
     "require-npm4-to-publish": "^1.0.0",
-    "resin-lint": "^3.3.0",
+    "resin-lint": "^3.3.1",
     "rewire": "^4.0.1",
     "ts-node": "^2.1.0",
-    "typescript": "^3.8.2"
+    "typescript": "^3.8.3"
   }
 }
