@@ -66,7 +66,7 @@ Examples are provided in typescript.
 ```javascript
 import { Builder, BuildHooks } from 'resin-docker-build'
 
-const builder = new Builder({ socketPath: '/var/run/docker.sock' })
+const builder = Builder.fromDockerOpts({ socketPath: '/var/run/docker.sock' })
 
 const hooks: BuildHooks = {
 	buildStream: (stream: NodeJS.ReadWriteStream): void => {
@@ -88,7 +88,7 @@ builder.buildDir('./my-dir', {}, hooks)
 import * as fs from 'fs'
 import { Builder, BuildHooks } from 'resin-docker-build'
 
-const builder = new Builder({ socketPath: '/var/run/docker.sock' })
+const builder = Builder.fromDockerOpts({ socketPath: '/var/run/docker.sock' })
 
 const getHooks = (archive: string): BuildHooks => {
 	return {
