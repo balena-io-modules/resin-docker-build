@@ -1,15 +1,30 @@
 {
   "compilerOptions": {
+    "lib": [
+      "es2019",
+      "es2020.promise",
+      "es2020.bigint",
+      "es2020.string"
+    ],
     "module": "commonjs",
-    "outDir": "./build/",
-    "sourceMap": true,
-    "target": "es6",
+    "target": "es2019",
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./build",
     "noImplicitAny": true,
-    "strictNullChecks": true,
-    "declaration": true
+    "noUnusedParameters": true,
+    "noUnusedLocals": true,
+    "preserveConstEnums": true,
+    "declaration": true,
+    "removeComments": true,
+    "sourceMap": true,
+    "strictNullChecks": true
   },
+  "include": [
+    "src/**/*.ts",
+    "typings/**/*.d.ts"
+  ],
   "exclude": [
-    "node_modules",
-    "build"
+    "node_modules"
   ]
 }
