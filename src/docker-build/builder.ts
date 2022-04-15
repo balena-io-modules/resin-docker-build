@@ -176,7 +176,7 @@ export default class Builder {
 				return Bluebird.all([relPath, fs.stat(file), fs.readFile(file)]);
 			})
 			.map((fileInfo: [string, fs.Stats, Buffer]) => {
-				return Bluebird.fromCallback(callback =>
+				return Bluebird.fromCallback((callback) =>
 					pack.entry(
 						{ name: fileInfo[0], size: fileInfo[1].size },
 						fileInfo[2],
@@ -245,7 +245,7 @@ function getDockerDaemonBuildOutputParserStream(
 			.pipe(JSONStream.parse())
 			// Don't use fat-arrow syntax here, to capture 'this' from es
 			.pipe(
-				es.through<Duplex>(function(data: { stream: string; error: string }) {
+				es.through<Duplex>(function (data: { stream: string; error: string }) {
 					if (data == null) {
 						return;
 					}

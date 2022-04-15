@@ -19,7 +19,7 @@ import * as _ from 'lodash';
 import rewire = require('rewire');
 import { Readable, Stream, Writable } from 'stream';
 
-import * as Utils from '../src/utils';
+import * as Utils from '../src/docker-build/utils';
 import {
 	sampleDaemonOutputGenerator,
 	sampleDaemonStreamGenerator,
@@ -76,14 +76,14 @@ class MockDockerode {
  *
  * As is, it takes under 50ms to run in a devenv VirtualBox VM on my laptop.
  */
-describe('createBuildStream', function() {
+describe('createBuildStream', function () {
 	this.timeout(5000);
 
 	const mockUtils = {};
 	_.assign(mockUtils, Utils, {
 		extractLayer: () => undefined,
 	});
-	const builderMod = rewire('../src/builder');
+	const builderMod = rewire('../src/docker-build/builder');
 	builderMod.__set__({
 		Dockerode: MockDockerode,
 		Utils: mockUtils,
@@ -103,10 +103,11 @@ describe('createBuildStream', function() {
 						`createBuildStream performance test: write time (tar stream): ${mockBuilder.docker.tarStreamMilliseconds} milliseconds`,
 					);
 					console.log(
-						`createBuildStream performance test: read time (JSON stream): ${Date.now() -
-							startTime} milliseconds`,
+						`createBuildStream performance test: read time (JSON stream): ${
+							Date.now() - startTime
+						} milliseconds`,
 					);
-					resolve();
+					resolve(undefined);
 				})
 				.on('data', (buf: any) => {
 					if (!startTime) {
@@ -182,7 +183,7 @@ async function mockTarStream(
 	const mockTarKiloByteBuf = Buffer.allocUnsafe(1024);
 	await eventLoopWriteIterable(
 		writeStream,
-		(function*() {
+		(function* () {
 			for (let i = 0; i < sizeMegaBytes * 1024; ++i) {
 				yield mockTarKiloByteBuf;
 			}

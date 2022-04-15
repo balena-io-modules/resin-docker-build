@@ -72,7 +72,8 @@ export const directoryToFiles = (dirPath: string): Bluebird<string[]> => {
 	});
 };
 
-const fromTagPattern = /^(Step.+?\s*:\s*)?FROM\s+([\w-./]+)(:?([\w-./]+))?\s*(as\s+([\w-./]+))?/;
+const fromTagPattern =
+	/^(Step.+?\s*:\s*)?FROM\s+([\w-./]+)(:?([\w-./]+))?\s*(as\s+([\w-./]+))?/;
 
 export interface FromTagInfo extends Plugin.FromTagInfo {
 	alias?: string;

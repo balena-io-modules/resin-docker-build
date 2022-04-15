@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { extractFromTag } from '../src/utils';
+import { extractFromTag } from '../src/docker-build/utils';
 
 describe('utils', () => {
 	it('can extract FROM statements', () => {

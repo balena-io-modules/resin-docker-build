@@ -25,9 +25,9 @@ import * as url from 'url';
 
 import rewire = require('rewire');
 
-import Builder from '../src/index';
-import { BuildHooks } from '../src/plugin';
-import * as Utils from '../src/utils';
+import Builder from '../src/docker-build';
+import { BuildHooks } from '../src/docker-build/plugin';
+import * as Utils from '../src/docker-build/utils';
 
 // In general we don't want output, until we do.
 // call with `env DISPLAY_TEST_OUTPUT=1 npm test` to display output
@@ -35,10 +35,10 @@ const displayOutput = process.env.DISPLAY_TEST_OUTPUT === '1';
 
 let dockerOpts: Dockerode.DockerOptions;
 if (process.env.CIRCLECI != null) {
-	const certs = ['ca.pem', 'cert.pem', 'key.pem'].map(f =>
+	const certs = ['ca.pem', 'cert.pem', 'key.pem'].map((f) =>
 		path.join(process.env.DOCKER_CERT_PATH!, f),
 	);
-	const [ca, cert, key] = certs.map(c => fs.readFileSync(c));
+	const [ca, cert, key] = certs.map((c) => fs.readFileSync(c));
 	const parsed = url.parse(process.env.DOCKER_HOST!);
 
 	dockerOpts = {
@@ -63,7 +63,7 @@ const getSuccessHooks = (done: (error?: Error) => void): BuildHooks => {
 		buildSuccess: (id, layers) => {
 			done();
 		},
-		buildFailure: err => {
+		buildFailure: (err) => {
 			if (displayOutput) {
 				console.log(err);
 			}
@@ -78,7 +78,7 @@ const getFailureHooks = (done: (error?: Error) => void): BuildHooks => {
 		buildSuccess: (id, layers) => {
 			done(new Error('Expected error, got success'));
 		},
-		buildFailure: err => {
+		buildFailure: (err) => {
 			if (displayOutput) {
 				console.log(err);
 			}
@@ -89,7 +89,7 @@ const getFailureHooks = (done: (error?: Error) => void): BuildHooks => {
 };
 
 describe('Directory build', () => {
-	it('should build a directory image', function(done) {
+	it('should build a directory image', function (done) {
 		// Give the build 60 seconds to finish
 		this.timeout(60000);
 		// Start a directory build
@@ -98,14 +98,14 @@ describe('Directory build', () => {
 
 		builder
 			.buildDir('test/test-files/directory-successful-build', {}, hooks)
-			.then(stream => {
+			.then((stream) => {
 				if (displayOutput) {
 					stream.pipe(process.stdout);
 				}
 			});
 	});
 
-	it('should pass layers and FROM tags', function(done) {
+	it('should pass layers and FROM tags', function (done) {
 		this.timeout(60000);
 
 		const hooks: BuildHooks = {
@@ -129,7 +129,7 @@ describe('Directory build', () => {
 				}
 				done();
 			},
-			buildFailure: err => {
+			buildFailure: (err) => {
 				if (displayOutput) {
 					console.log(err);
 				}
@@ -140,14 +140,14 @@ describe('Directory build', () => {
 		const builder = Builder.fromDockerode(docker);
 		builder
 			.buildDir('test/test-files/directory-successful-build', {}, hooks)
-			.then(stream => {
+			.then((stream) => {
 				if (displayOutput) {
 					stream.pipe(process.stdout);
 				}
 			});
 	});
 
-	it('should fail to build a directory without Dockerfile', function(done) {
+	it('should fail to build a directory without Dockerfile', function (done) {
 		this.timeout(30000);
 
 		const builder = Builder.fromDockerode(docker);
@@ -155,14 +155,14 @@ describe('Directory build', () => {
 
 		builder
 			.buildDir('test/test-files/directory-no-dockerfile', {}, hooks)
-			.then(stream => {
+			.then((stream) => {
 				if (displayOutput) {
 					stream.pipe(process.stdout);
 				}
 			});
 	});
 
-	it('should fail with invalid Dockerfile', function(done) {
+	it('should fail with invalid Dockerfile', function (done) {
 		this.timeout(30000);
 
 		const builder = Builder.fromDockerode(docker);
@@ -170,18 +170,18 @@ describe('Directory build', () => {
 
 		builder
 			.buildDir('test/test-files/directory-invalid-dockerfile', {}, hooks)
-			.then(stream => {
+			.then((stream) => {
 				if (displayOutput) {
 					stream.pipe(process.stdout);
 				}
 			});
 	});
 
-	it('should pass stream to caller on successful build', function(done) {
+	it('should pass stream to caller on successful build', function (done) {
 		// Shorter timeout for this test, as a timeout is the failure marker
 		this.timeout(10000);
 		const hooks: BuildHooks = {
-			buildStream: stream => {
+			buildStream: (stream) => {
 				if (displayOutput) {
 					stream.pipe(process.stdout);
 				}
@@ -193,10 +193,10 @@ describe('Directory build', () => {
 		builder.buildDir('test/test-files/directory-successful-build', {}, hooks);
 	});
 
-	it('should pass stream to caller on unsuccessful build', function(done) {
+	it('should pass stream to caller on unsuccessful build', function (done) {
 		this.timeout(10000);
 		const hooks: BuildHooks = {
-			buildStream: stream => {
+			buildStream: (stream) => {
 				if (displayOutput) {
 					stream.pipe(process.stdout);
 				}
@@ -210,7 +210,7 @@ describe('Directory build', () => {
 });
 
 describe('Tar stream build', () => {
-	it('should build a tar stream successfully', function(done) {
+	it('should build a tar stream successfully', function (done) {
 		this.timeout(60000);
 
 		const tarStream = fs.createReadStream(
@@ -218,7 +218,7 @@ describe('Tar stream build', () => {
 		);
 
 		const hooks: BuildHooks = {
-			buildStream: stream => {
+			buildStream: (stream) => {
 				tarStream.pipe(stream);
 				if (displayOutput) {
 					stream.pipe(process.stdout);
@@ -227,7 +227,7 @@ describe('Tar stream build', () => {
 			buildSuccess: (id, layers) => {
 				done();
 			},
-			buildFailure: err => {
+			buildFailure: (err) => {
 				if (displayOutput) {
 					console.log(err);
 				}
@@ -239,7 +239,7 @@ describe('Tar stream build', () => {
 		builder.createBuildStream({}, hooks);
 	});
 
-	it('should fail to build invalid tar stream', function(done) {
+	it('should fail to build invalid tar stream', function (done) {
 		this.timeout(60000);
 
 		const tarStream = fs.createReadStream(
@@ -247,7 +247,7 @@ describe('Tar stream build', () => {
 		);
 
 		const hooks: BuildHooks = {
-			buildStream: stream => {
+			buildStream: (stream) => {
 				tarStream.pipe(stream);
 				if (displayOutput) {
 					stream.pipe(process.stdout);
@@ -256,7 +256,7 @@ describe('Tar stream build', () => {
 			buildSuccess: (id, layers) => {
 				done(new Error('Expected build failure, got success hook'));
 			},
-			buildFailure: err => {
+			buildFailure: (err) => {
 				if (displayOutput) {
 					console.log(err);
 				}
@@ -268,7 +268,7 @@ describe('Tar stream build', () => {
 		builder.createBuildStream({}, hooks);
 	});
 
-	it('should return successful layers upon failure', function() {
+	it('should return successful layers upon failure', function () {
 		this.timeout(60000);
 		return new Bluebird((resolve, reject) => {
 			const tarStream = fs.createReadStream(
@@ -291,7 +291,7 @@ describe('Tar stream build', () => {
 						resolve();
 					}
 				},
-				buildStream: stream => {
+				buildStream: (stream) => {
 					tarStream.pipe(stream);
 					if (displayOutput) {
 						stream.pipe(process.stdout);
@@ -303,7 +303,7 @@ describe('Tar stream build', () => {
 		});
 	});
 
-	it('should fail to build if Utils.extractLayer throws an error', function() {
+	it('should fail to build if Utils.extractLayer throws an error', function () {
 		this.timeout(30000);
 		const mockUtils = {};
 		_.assign(mockUtils, Utils, {
@@ -311,7 +311,7 @@ describe('Tar stream build', () => {
 				throw new Error('spanner');
 			},
 		});
-		const builderMod = rewire('../src/builder');
+		const builderMod = rewire('../src/docker-build/builder');
 		return builderMod.__with__({
 			Utils: mockUtils,
 		})(
@@ -339,7 +339,7 @@ describe('Tar stream build', () => {
 								resolve();
 							}
 						},
-						buildStream: stream => {
+						buildStream: (stream) => {
 							tarStream.pipe(stream);
 							if (displayOutput) {
 								stream.pipe(process.stdout);
@@ -356,7 +356,7 @@ describe('Tar stream build', () => {
 });
 
 describe('Error handler', () => {
-	it('should catch a synchronous error from a hook', function() {
+	it('should catch a synchronous error from a hook', function () {
 		this.timeout(30000);
 
 		return new Bluebird((resolve, reject) => {
@@ -376,7 +376,7 @@ describe('Error handler', () => {
 						resolve();
 					}
 				},
-				buildStream: stream => {
+				buildStream: (stream) => {
 					throw new Error(
 						'Synchronous buildStream error should have been caught',
 					);
@@ -387,7 +387,7 @@ describe('Error handler', () => {
 		});
 	});
 
-	it('should catch an asynchronous error from a hook', function() {
+	it('should catch an asynchronous error from a hook', function () {
 		this.timeout(30000);
 
 		return new Bluebird((resolve, reject) => {
@@ -407,7 +407,7 @@ describe('Error handler', () => {
 						resolve();
 					}
 				},
-				buildStream: stream => {
+				buildStream: (stream) => {
 					return Promise.reject(
 						new Error('Asynchronous buildStream error should have been caught'),
 					);
