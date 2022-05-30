@@ -1,7 +1,17 @@
 - commits:
+    - subject: Bump dockerode versions
+      hash: 686366a844ac0552ab3d86051c6200a053c64505
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Paul Jonathan Zoulin
+  version: 1.1.7
+  date: 2022-05-30T15:19:05.079Z
+- commits:
     - subject: Add .versionbot/CHANGELOG.yml for nested changelogs
       hash: 139561ad61ca4f0e2a6203fe3c5f3345ba32cf83
-      body: ''
+      body: ""
       footer:
         Change-type: patch
         change-type: patch
@@ -10,58 +20,58 @@
   date: 2020-08-19T12:14:05.986Z
 - commits:
     - author: CameronDiver
-      body: ''
+      body: ""
       footers:
         change-type: patch
         signed-off-by: Cameron Diver <cameron@balena.io>
       hash: 0e84ec3d48268c0ae1a2390a2dad2cf8ec9e0eec
       subject: Update README with correct instantiation method
-  date: '2020-04-02T16:54:05Z'
+  date: 2020-04-02T16:54:05Z
   version: 1.1.5
 - commits:
     - author: Pagan Gazzard
-      body: ''
+      body: ""
       footers:
         change-type: patch
       hash: 5de9feba9f06589f85ff7628e1f24d1ce173e89c
       subject: Update dependencies
-  date: '2020-03-03T16:44:08Z'
+  date: 2020-03-03T16:44:08Z
   version: 1.1.4
 - commits:
     - author: Pagan Gazzard
-      body: ''
+      body: ""
       footers:
         change-type: patch
       hash: 272d8802d61625a4a51ca79feda4a5148d892e34
       subject: Update dependencies
-  date: '2020-02-21T02:46:59Z'
+  date: 2020-02-21T02:46:59Z
   version: 1.1.3
 - commits:
     - author: Roman Mazur
-      body: ''
+      body: ""
       footers:
         change-type: patch
         signed-off-by: Roman Mazur <roman@balena.io>
       hash: 7d00b6264cf8dc21bb28e01102988745c5f3b550
       subject: Export base image tag info interface
-  date: '2019-11-20T11:06:34Z'
+  date: 2019-11-20T11:06:34Z
   version: 1.1.2
 - commits:
     - author: Roman Mazur
-      body: ''
+      body: ""
       footers:
         change-type: patch
         signed-off-by: Roman Mazur <roman@balena.io>
       hash: 706f09ff65597c258510d409c6f3bd2569661d98
       subject: Remove package-lock.json
     - author: Roman Mazur
-      body: ''
+      body: ""
       footers:
         change-type: patch
         signed-off-by: Roman Mazur <roman@balena.io>
       hash: f748185e0fd2aa186e604458f4b23ee96975b633
       subject: Update linter and add commit hooks
-  date: '2019-11-20T09:27:32Z'
+  date: 2019-11-20T09:27:32Z
   version: 1.1.1
 - commits:
     - author: Roman Mazur
@@ -70,8 +80,7 @@
 
         used in FROM instructions during the build.
 
-        It should not add too much overhead to what is already done by the
-        library,
+        It should not add too much overhead to what is already done by the library,
 
         but will expose quite interesting details useful in build analysis.
       footers:
@@ -80,29 +89,29 @@
       hash: 79be885c1914a8ade7114520692027a8aa4c5864
       subject: Provide info about used base images
     - author: Roman Mazur
-      body: ''
+      body: ""
       footers:
         signed-off-by: Roman Mazur <roman@balena.io>
       hash: 3a6c2064e48d113230cfb319dbf87b5c77df3375
-      subject: 'Drop node 6, run tests on node 12'
-  date: '2019-11-19T19:40:22Z'
+      subject: Drop node 6, run tests on node 12
+  date: 2019-11-19T19:40:22Z
   version: 1.1.0
 - commits:
     - author: Paulo Castro
-      body: ''
+      body: ""
       footers:
         change-type: patch
         signed-off-by: Paulo Castro <paulo@balena.io>
       hash: 82c6083198b84d2f39af7aafc8df63b55a075465
-      subject: 'Integrate resin-lint and prettier, and add more data typing'
+      subject: Integrate resin-lint and prettier, and add more data typing
     - author: Paulo Castro
-      body: ''
+      body: ""
       footers:
         change-type: patch
         signed-off-by: Paulo Castro <paulo@balena.io>
       hash: d3ea9b0c87a0cbb75349a4550a960ab0ce049780
       subject: Harden error handling for Builder.createBuildStream
-  date: '2019-03-12T13:06:44Z'
+  date: 2019-03-12T13:06:44Z
   version: 1.0.1
 - commits:
     - author: Cameron Diver
@@ -116,20 +125,20 @@
       hash: c0308890e5d661f1158aa29997c23243d77fb4fe
       subject: Switch creation method for Builder class to be more explicit
     - author: Cameron Diver
-      body: ''
+      body: ""
       footers:
         change-type: patch
         signed-off-by: Cameron Diver <cameron@balena.io>
       hash: 5eb4b1debdfa4876b1e1e59fc7270470b7977544
-      subject: 'Use chai for assert, to avoid node6 failures'
+      subject: Use chai for assert, to avoid node6 failures
     - author: Cameron Diver
-      body: ''
+      body: ""
       footers:
         change-type: minor
         signed-off-by: Cameron Diver <cameron@balena.io>
       hash: bd4782a4ecaf63b0c4fa0df4794898872a49e626
       subject: Also run CI on node10
-  date: '2019-03-04T16:09:52Z'
+  date: 2019-03-04T16:09:52Z
   version: 1.0.0
 - commits:
     - author: Paulo Castro
@@ -141,95 +150,95 @@
         signed-off-by: Paulo Castro <paulo@balena.io>
       hash: 007e9806e317f8ff85bd14f0e503d00384e863c6
       subject: Fix intermittent false success build status
-  date: '2018-12-14T12:36:27Z'
+  date: 2018-12-14T12:36:27Z
   version: 0.7.1
 - commits:
     - author: Cameron Diver
-      body: ''
+      body: ""
       footers:
         change-type: patch
         signed-off-by: Cameron Diver <cameron@resin.io>
       hash: 5e357a0a0249ceedf85779bdf1a13bbecf5d8959
-      subject: 'housekeeping: Remove build directory from repository'
+      subject: "housekeeping: Remove build directory from repository"
     - author: Cameron Diver
-      body: ''
+      body: ""
       footers:
         change-type: patch
         signed-off-by: Cameron Diver <cameron@resin.io>
       hash: 83ee47abb359b40be671706f41cfce004253a5f5
-      subject: 'fix: Ensure to fail on typescript build error'
+      subject: "fix: Ensure to fail on typescript build error"
     - author: Cameron Diver
       body: Also remove es6-promise types which are not needed.
       footers:
         change-type: minor
         signed-off-by: Cameron Diver <cameron@resin.io>
       hash: 429a020e06f6dc80da00d316626f1e97b2a9f5ca
-      subject: 'housekeeping: Export declarations and fix publish steps'
+      subject: "housekeeping: Export declarations and fix publish steps"
     - author: Cameron Diver
-      body: ''
+      body: ""
       footers:
         change-type: patch
         signed-off-by: Cameron Diver <cameron@resin.io>
       hash: 2ed8212d2441d7972e449353e73c730f6fdb268f
-      subject: 'cleanup: Rename tests -> test and build before test run'
+      subject: "cleanup: Rename tests -> test and build before test run"
     - author: Cameron Diver
-      body: ''
+      body: ""
       footers:
         change-type: patch
         signed-off-by: Cameron Diver <cameron@resin.io>
       hash: 6563ed98c04ad9d4469bd96e631b09193fd3239b
-      subject: 'refactor: Rename plugin.d.ts -> plugin.ts'
+      subject: "refactor: Rename plugin.d.ts -> plugin.ts"
     - author: Cameron Diver
-      body: ''
+      body: ""
       footers:
         change-type: patch
         signed-off-by: Cameron Diver <cameron@resin.io>
       hash: 4eedd6b5ea7a94f5d1d5e6b5968b3a66d0e44bf1
-      subject: 'fix: Fix layer reporting for failed builds'
+      subject: "fix: Fix layer reporting for failed builds"
     - author: Cameron Diver
-      body: ''
+      body: ""
       footers:
         change-type: minor
         signed-off-by: Cameron Diver <cameron@resin.io>
       hash: 8f3058157118ca2b67ca0943325f7d42038872e9
-      subject: 'ci: Use circleci v2'
+      subject: "ci: Use circleci v2"
     - author: Cameron Diver
-      body: ''
+      body: ""
       footers:
         signed-off-by: Cameron Diver <cameron@resin.io>
       hash: b29409d1c832ff063d3402937135f98ec2dba7b8
       subject: Remove tests from publish step until resinCI supports tests
-  date: '2018-09-20T10:22:05Z'
+  date: 2018-09-20T10:22:05Z
   version: 0.7.0
 - commits:
     - author: Cameron Diver
-      body: ''
+      body: ""
       footers:
         change-type: patch
         signed-off-by: Cameron Diver <cameron@resin.io>
       hash: fdf4105922edf753a6577e823bee1f0b474ae508
       subject: Add missing build files
-  date: '2017-06-22T16:22:40Z'
+  date: 2017-06-22T16:22:40Z
   version: 0.6.2
 - commits:
     - author: Cameron Diver
-      body: ''
+      body: ""
       footers:
         change-type: patch
         signed-off-by: Cameron Diver <cameron@resin.io>
       hash: a0efc1aa380c4a89bb3111c0872c76e2cf9b30ab
       subject: Unpin dockerode version and don't use the Async-appended functions
-  date: '2017-05-16T00:43:37Z'
+  date: 2017-05-16T00:43:37Z
   version: 0.6.1
 - commits:
     - author: Cameron Diver
-      body: ''
+      body: ""
       footers:
         change-type: patch
         signed-off-by: Cameron Diver <cameron@resin.io>
       hash: e5c5bbb45b80c64fcb0b3f37559cbd20c0e8126d
       subject: Add build output
-  date: '2017-05-10T20:21:32Z'
+  date: 2017-05-10T20:21:32Z
   version: 0.5.1
 - commits:
     - author: Cameron Diver
@@ -245,7 +254,7 @@
         signed-off-by: Cameron Diver <cameron@resin.io>
       hash: c81fa317e1ec56b33a4a48114f641a6ce1520aea
       subject: Add successful layers parameter to the buildFailure hook
-  date: '2017-05-10T19:13:20Z'
+  date: 2017-05-10T19:13:20Z
   version: 0.5.0
 - commits:
     - author: Cameron Diver
@@ -258,7 +267,7 @@
         signed-off-by: Cameron Diver <cameron@resin.io>
       hash: bb93801edb920052a8cefdb23178ddf33fd9521a
       subject: Added undefined check for hook return value
-  date: '2017-04-18T14:27:17Z'
+  date: 2017-04-18T14:27:17Z
   version: 0.4.1
 - commits:
     - author: Cameron Diver
@@ -270,8 +279,8 @@
         change-type: minor
         signed-off-by: Cameron Diver <cameron@resin.io>
       hash: 5f95fd37700d027cee21eb8adfe92a115e104065
-      subject: 'Added error handler parameter, which will catch errors from hooks'
-  date: '2017-03-29T10:55:05Z'
+      subject: Added error handler parameter, which will catch errors from hooks
+  date: 2017-03-29T10:55:05Z
   version: 0.4.0
 - commits:
     - author: Cameron Diver
@@ -285,7 +294,7 @@
         signed-off-by: Cameron Diver <cameron@resin.io>
       hash: b434f4de1b41347e9f4e4faa2f2c041f075e2e35
       subject: Revert addition of transformBuild hook
-  date: '2017-03-28T12:17:33Z'
+  date: 2017-03-28T12:17:33Z
   version: 0.3.0
 - commits:
     - author: Cameron Diver
@@ -294,15 +303,15 @@
         read would be dispatched on a directory, which would crash the program.
       footers:
         change-type: patch
-        connects-to: '#11'
+        connects-to: "#11"
         signed-off-by: Cameron Diver <cameron@resin.io>
       hash: ae382a0416d001d56378ef643e4e5d61009a4d84
-      subject: 'Fix buildDir call with multiple directories (Bug #11)'
-    - author: 'resin-versionbot[bot]'
-      body: ''
+      subject: "Fix buildDir call with multiple directories (Bug #11)"
+    - author: resin-versionbot[bot]
+      body: ""
       hash: 8d63142f08277ecaa21735f5dab2f461d02bd3e1
       subject: v0.2.1
-  date: '2017-03-27T16:22:16Z'
+  date: 2017-03-27T16:22:16Z
   version: 0.2.1
 - commits:
     - author: Cameron Diver
@@ -315,12 +324,12 @@
         change-type: minor
         signed-off-by: Cameron Diver <cameron@resin.io>
       hash: b1d99b164d644a4ac517a3d428223ee4a897bf31
-      subject: 'Add buildTransform hook to the module, when using buildDir'
-    - author: 'resin-versionbot[bot]'
-      body: ''
+      subject: Add buildTransform hook to the module, when using buildDir
+    - author: resin-versionbot[bot]
+      body: ""
       hash: a294ce7b4b815159e3678c1bc59d4b49eaac2a85
       subject: v0.2.0
-  date: '2017-03-27T15:59:14Z'
+  date: 2017-03-27T15:59:14Z
   version: 0.2.0
 - commits:
     - author: Cameron Diver
@@ -332,11 +341,11 @@
         signed-off-by: Cameron Diver <cameron@resin.io>
       hash: 8aee0b5ef6aebbdc651dbcec4a66b53d7a039fcb
       subject: Removed typo in gulpfile
-    - author: 'resin-versionbot[bot]'
-      body: ''
+    - author: resin-versionbot[bot]
+      body: ""
       hash: 77e1c81e6eeb0fd95306c02b254b30387e655cc4
       subject: v0.1.2
-  date: '2017-03-22T12:07:16Z'
+  date: 2017-03-22T12:07:16Z
   version: 0.1.2
 - commits:
     - author: Cameron Diver
@@ -360,56 +369,56 @@
         change-type: patch
         signed-off-by: Cameron Diver <cameron@resin.io>
       hash: 67a14dc5f06c5a35669de1a35fe0e87bd5e5332f
-      subject: 'Use gulp for tests, instead of directly calling mocha'
-    - author: 'resin-versionbot[bot]'
-      body: ''
+      subject: Use gulp for tests, instead of directly calling mocha
+    - author: resin-versionbot[bot]
+      body: ""
       hash: 07dbf2759706ee0e8bb33af5f7cd3e6aff0a6529
       subject: v0.1.1
-  date: '2017-03-21T13:32:44Z'
+  date: 2017-03-21T13:32:44Z
   version: 0.1.1
 - commits:
     - author: Cameron Diver
-      body: ''
+      body: ""
       footers:
         change-type: minor
         signed-off-by: Cameron Diver <cameron@resin.io>
       hash: 5ffac45a94185aaf334a0ce236b4167a74b37901
       subject: Add circle.yml file for circleCI builds
     - author: Cameron Diver
-      body: ''
+      body: ""
       footers:
         change-type: patch
       hash: d1df9905626523eb3b0f9cfac88e8c7520681283
       subject: Add stub file to avoid git ignoring an empty directory
-    - author: 'resin-versionbot[bot]'
-      body: ''
+    - author: resin-versionbot[bot]
+      body: ""
       hash: 3187e97eacc1c1d98a9544bdbcae257d875d40e1
       subject: v0.1.0
-  date: '2017-03-16T14:47:45Z'
+  date: 2017-03-16T14:47:45Z
   version: 0.1.0
 - commits:
     - author: Cameron Diver
-      body: ''
+      body: ""
       footers:
         change-type: patch
         signed-off-by: Cameron Diver <cameron@resin.io>
       hash: b32e4c1f59afca8b3820b45b34385028fd5cc429
       subject: Pin version of dockerode to stop crashes when promisifying
-    - author: 'resin-versionbot[bot]'
-      body: ''
+    - author: resin-versionbot[bot]
+      body: ""
       hash: bbc9f6caa68d7c42d570b7975f3229166a1463b3
       subject: v0.0.3
-  date: '2017-03-10T13:21:08Z'
+  date: 2017-03-10T13:21:08Z
   version: 0.0.3
 - commits:
     - author: Cameron Diver
-      body: 'Add information of repository, issues and homepage to the package.json'
+      body: Add information of repository, issues and homepage to the package.json
       footers:
         change-type: patch
       hash: 9c0390db49f67762cdbb29a7053828ab19382cdf
       subject: Add repository information to package.json
-    - author: 'resin-versionbot[bot]'
-      body: ''
+    - author: resin-versionbot[bot]
+      body: ""
       hash: 9f295615c625de845d15225b961ae3686402f3e1
       subject: v0.0.2
     - author: Cameron Diver
@@ -423,5 +432,5 @@
         signed-off-by: Cameron Diver <cameron@resin.io>
       hash: e38e74d5359e3f645225ffd926413c507dcaaf9e
       subject: Initial code commit
-  date: '2017-03-08T15:38:13Z'
+  date: 2017-03-08T15:38:13Z
   version: 0.0.2
