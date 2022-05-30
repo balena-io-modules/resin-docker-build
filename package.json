@@ -1,6 +1,6 @@
 {
   "name": "resin-docker-build",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "A containerised builder which interacts with the docker remote API to perform builds.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -72,5 +72,8 @@
     "rewire": "^4.0.1",
     "ts-node": "^2.1.0",
     "typescript": "^3.8.3"
+  },
+  "versionist": {
+    "publishedAt": "2022-05-30T15:24:46.390Z"
   }
 }
