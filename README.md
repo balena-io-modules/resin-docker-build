@@ -3,6 +3,8 @@
 [![npm version](https://badge.fury.io/js/resin-docker-build.svg)](https://badge.fury.io/js/resin-docker-build)
 [![CircleCI](https://circleci.com/gh/resin-io/resin-docker-build.svg?style=svg)](https://circleci.com/gh/resin-io/resin-docker-build)
 
+**DEPRECATED -- This module has been deprecated; please use [balena-compose](https://github.com/balena-io-modules/balena-compose) instead.**
+
 A modular, plugin-based approach to building docker containers. Resin-docker-build uses streams and
 hooks to provide a system which can be added to a build pipeline easily. With a simple but flexible
 interface, this module is meant to take the pain out of automating docker builds. Resin-docker-build is
